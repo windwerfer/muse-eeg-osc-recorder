@@ -5,11 +5,15 @@ from pythonosc import osc_server
 
 import math
 
+from lib.record_to_file import gracefully_end
+from write_osc_to_files import buffered_data
+from write_osc_to_files import buffered_feedback
+
 
 
 # Define the function to handle incoming OSC messages
 def handle_eeg_message(address, *args, timestamp_true=False, timestamp_constant=True):
-    global columns, start_time, conf, signal, electrodes, debug_print
+    global conf, signal
 
     eeg_data = {}
     sig_data = {}
@@ -54,14 +58,14 @@ def handle_eeg_message(address, *args, timestamp_true=False, timestamp_constant=
 
     buffered_data['eeg'].append(eeg_data)
     if conf['add_signal_quality_file']:
-        buffered_data['signal_quality'].append(sig_data)
+        buffered_data['signal_quality'].put(sig_data)
 
-    if (debug_print):
+    if False:
         print(f"Received EEG OSC message - Address: {address}, Args: {args}")
 
 
 def handle_ppg_message(address, *args):
-    global buffered_data
+
 
     ppg_data = {}
 
@@ -78,11 +82,11 @@ def handle_ppg_message(address, *args):
     ppg_data['heart_rate_1'] = args[1]
     #ppg_data['heart_rate_2'] = args[2]
 
-    buffered_data['heart_rate'].append(ppg_data)
+    buffered_data['heart_rate'].put(ppg_data)
 
 
 def handle_acc_message(address, *args):
-    global buffered_data, buffered_feedback
+
 
     acc_data = {}
 
@@ -92,9 +96,9 @@ def handle_acc_message(address, *args):
     acc_data['y'] = args[1]
     acc_data['z'] = args[2]
 
-    buffered_data['acc'].append(acc_data)
+    buffered_data['acc'].put(acc_data)
     if conf['feedback_acc']:
-        buffered_feedback['acc'].append(acc_data)
+        buffered_feedback['acc'].put(acc_data)
 
 
 def handle_isGood_message(address, *args):
@@ -125,7 +129,7 @@ def handle_isGoodMM_message(address, *args):
         signal['is_good'] = 0
 
 
-def osc_start():
+def osc_start(conf):
     global dispatcher
 
     dispatcher = dispatcher.Dispatcher()
