@@ -2,7 +2,7 @@
 
 import csv
 import os
-import queue
+
 import sys
 import time
 import zipfile
@@ -15,7 +15,7 @@ last_timestamp = {'eeg': 0, 'heart_rate': 0, 'acc': 0, 'signal_quality': 0}
 def open_file(name, data, csv_delimiter=','):
 
     data['file']['open'][name] = open(f"{data['folder']['out']}/{data['folder']['tmp']}/{data['file']['name'][name]}", "w", newline="")
-    data['file']['csv_writer'][name] = csv.DictWriter(data['file']['open'][name], fieldnames=columns[name], delimiter=csv_delimiter)
+    data['file']['csv_writer'][name] = csv.DictWriter(data['file']['open'][name], fieldnames=data['columns'][name], delimiter=csv_delimiter)
     if data['conf']['add_header_row']:
         data['file']['csv_writer'][name].writeheader()
 
@@ -194,8 +194,9 @@ def gracefully_end(data):
     data['conf']['exiting'] = True
 
     if data['folder']['tmp'] != '':
-        close_and_zip_files()
+        close_and_zip_files(data)
 
     print('\nend programm. all good.')
+    os._exit(0)
 
 

@@ -71,7 +71,7 @@ class MovingGraph:
 # Your feedback_acc function remains mostly the same, but ensure it's using this updated calculate_movement
 
 # biofeedback thread
-def feedback_acc(data):
+def feedback_acc_start(data):
     
     # time.sleep(2)
 

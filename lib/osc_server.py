@@ -6,7 +6,6 @@ from pythonosc import osc_server
 
 import math
 
-#from lib.record_to_file import gracefully_end
 
 
 
@@ -154,7 +153,8 @@ def osc_start(data):
         server.serve_forever()
     except KeyboardInterrupt:
         #gracefully_end()
-        os._exit(0)
+        #os._exit(0)
+        pass
     finally:
         #keyboard.unhook_all()
         pass

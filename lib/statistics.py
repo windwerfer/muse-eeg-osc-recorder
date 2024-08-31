@@ -67,7 +67,7 @@ def start_stats(data):
             si = f" | signal: {data['signal']['is_good']}"
 
         if True:
-            if data['buffered_data']['eeg']:
+            if data['buffer']['eeg']:
                 rec = "rec "
             else:
                 rec = "wait"
