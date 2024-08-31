@@ -1,0 +1,13 @@
+.idea
+eeglab
+matlab_sample_data
+out_eeg
+out_eeg__pulse_data
+raw
+raw_matlab
+tmp
+video turorials  - Time-Frequency Analysis of EEG Time Series
+screenshots
+sample_raw_to_graph
+sample_live_streams
+kivy*
