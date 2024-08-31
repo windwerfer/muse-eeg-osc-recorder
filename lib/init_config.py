@@ -1,6 +1,7 @@
 import argparse
 
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Configure EEG recording parameters.')
 
@@ -40,14 +41,13 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def init_conf():
-    global conf, columns, sig
+def init_conf(data):
     # Parse command-line arguments
 
     args = parse_arguments()
 
     # Create a configuration dictionary with the parsed arguments
-    conf = {
+    data['conf'] = {
         'only_record_if_signal_is_good': args.only_record_if_signal_is_good,
         'if_signal_is_not_good_set_signal_to': args.if_signal_is_not_good_set_signal_to,
         'add_heart_rate_file': args.add_heart_rate_file,
@@ -64,32 +64,33 @@ def init_conf():
         'feedback_acc': args.feedback_acc,
     }
 
-    if conf['add_time_column']:
-        columns['eeg'].append('timestamp')
-        columns['heart_rate'].append('timestamp')
-        columns['acc'].append('timestamp')
-        columns['signal_quality'].append('timestamp')
+    if data['conf']['add_time_column']:
+        data['columns']['eeg'].append('timestamp')
+        data['columns']['heart_rate'].append('timestamp')
+        data['columns']['acc'].append('timestamp')
+        data['columns']['signal_quality'].append('timestamp')
 
 
     # Define the CSV column names based on OSC addresses
-    columns['eeg'].extend(["tp9", "af7", "af8", "tp10"])
-    #columns['heart_rate'].extend(["heart_rate_0", "heart_rate_1", "heart_rate_2"])
-    columns['heart_rate'].extend(["heart_rate_1"]) # muse only uses heart rate sensor 1, sensor 0 & 2 (infrared and green) are not used, mind monitor does not send the heartrate at all
-    columns['acc'].extend(["x", "y", "z"])
-    columns['signal_quality'].extend(["all_signals_are_good"])
+    data['columns']['eeg'].extend(["tp9", "af7", "af8", "tp10"])
+    #data['columns']['heart_rate'].extend(["heart_rate_0", "heart_rate_1", "heart_rate_2"])
+    data['columns']['heart_rate'].extend(["heart_rate_1"]) # muse only uses heart rate sensor 1, sensor 0 & 2 (infrared and green) are not used, mind monitor does not send the heartrate at all
+    data['columns']['acc'].extend(["x", "y", "z"])
+    data['columns']['signal_quality'].extend(["all_signals_are_good"])
 
-    if conf['add_aux_columns']:
-        columns['eeg'].extend(['aux0', 'aux1'])
+    if data['conf']['add_aux_columns']:
+        data['columns']['eeg'].extend(['aux0', 'aux1'])
 
-    if conf['add_signal_quality_for_each_electrode']:
-        columns['signal_quality'].extend(['signal_quality_TP9', 'signal_quality_AF7', 'signal_quality_AF8', 'signal_quality_TP10'])
+    if data['conf']['add_signal_quality_for_each_electrode']:
+        data['columns']['signal_quality'].extend(['signal_quality_TP9', 'signal_quality_AF7', 'signal_quality_AF8', 'signal_quality_TP10'])
 
 
 
-    conf['exiting'] = False # marker for threads that the programm is exiting
+    data['conf']['exiting'] = False # marker for threads that the programm is exiting
 
     # muse s and muse 2 have the same specs for eeg, ppg (heart_rate), and acc (gryoscope)
     #  (signal_quality has the same sampling rate as eeg)
-    conf['sampling_rate'] = {'eeg': 256, 'signal_quality': 256, 'heart_rate': 64, 'acc': 52}
+    data['conf']['sampling_rate'] = {'eeg': 256, 'signal_quality': 256, 'heart_rate': 64, 'acc': 52}
 
-    return conf
+
+

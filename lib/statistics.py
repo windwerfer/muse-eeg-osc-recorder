@@ -4,9 +4,8 @@ import sys
 import psutil
 
 
-stats = {'refresh_interval': 0.5, 'cpu': 0, 'cpu_one_core': 0.0, 'nr_cpu_cores': 1, 'battery': None, 'recording': 0,
-         'counter': '-'}
-stats['nr_cpu_cores'] = psutil.cpu_count(logical=True)
+
+
 
 # format eeglab: only the values, nothing else, no header.. just 4 columns with numbers
 # edit->channel location: choose 'import file and erase all channels' (ignore drop down menue) and load the file 'muse_channels.sfp' with the following values (no # and no leading spaces):
@@ -31,28 +30,29 @@ def is_run_in_pycharm():
     return 'PYCHARM_HOSTED' in os.environ
 
 
-def get_process_cpu_usage():
-    global stats
+def get_process_cpu_usage(data):
+
     """Return the CPU usage percentage of the current process."""
     # process = psutil.Process(os.getpid())
-    stats['cpu_one_core'] = stats['process_pointer'].cpu_percent(
-        interval=stats['refresh_interval'])  # cpu usage averaged over 10 seconds
-    return round(stats['cpu_one_core'] / stats['nr_cpu_cores'], 1)
+    data['stats']['cpu_one_core'] = data['stats']['process_pointer'].cpu_percent(
+        interval=data['stats']['refresh_interval'])  # cpu usage averaged over 10 seconds
+    return round(data['stats']['cpu_one_core'] / data['stats']['nr_cpu_cores'], 1)
 
 
 # stats thread
-def start_stats():
-    global stats, buffered_feedback, signal
+def start_stats(data):
 
-    stats['process_pointer'] = psutil.Process(os.getpid())
 
-    while False:
+    data['stats']['nr_cpu_cores'] = psutil.cpu_count(logical=True)
+    data['stats']['process_pointer'] = psutil.Process(os.getpid())
 
-        stats[
-            'cpu'] = get_process_cpu_usage()  # cpu usage for the complete processor # ({stats['cpu_one_core']}/{stats['nr_cpu_cores']})
-        if buffered_feedback['acc']:
+    while True:
+
+        # cpu usage for the complete processor # ({data['stats']['cpu_one_core']}/{data['stats']['nr_cpu_cores']})
+        data['stats']['cpu'] = get_process_cpu_usage(data)
+        if data['feedback']['acc']:
             # if False:
-            acc = buffered_feedback['acc'][-1]
+            acc = data['feedback']['acc'][-1]
             x = acc['x']
             y = acc['y']
             z = acc['z']
@@ -61,30 +61,30 @@ def start_stats():
             acc = ""
 
         if True:
-            cpu = f" | cpu: {stats['cpu']:>4.1f}%"
+            cpu = f" | cpu: {data['stats']['cpu']:>4.1f}%"
 
         if True:
-            si = f" | signal: {signal['is_good']}"
+            si = f" | signal: {data['signal']['is_good']}"
 
         if True:
-            if buffered_data['eeg']:
+            if data['buffered_data']['eeg']:
                 rec = "rec "
             else:
                 rec = "wait"
 
         if True:
-            m = round(stats['process_pointer'].memory_percent(), 1)
+            m = round(data['stats']['process_pointer'].memory_percent(), 1)
             mem = f" | mem: {m}%"
 
         # cpu usage, received osc streams, good fit
-        sys.stdout.write(f"\r{stats['counter']} {rec}{cpu}{mem}{acc}{si} ")
+        sys.stdout.write(f"\r{data['stats']['counter']} {rec}{cpu}{mem}{acc}{si} ")
         sys.stdout.flush()
 
-        if stats['counter'] == '-':
-            stats['counter'] = '+'
+        if data['stats']['counter'] == '-':
+            data['stats']['counter'] = '+'
         else:
-            stats['counter'] = '-'
+            data['stats']['counter'] = '-'
 
         # waits automatically because of get_process_cpu_usage()
-        # time.sleep(stats['refresh_interval'])
+        # time.sleep(data['stats']['refresh_interval'])
 

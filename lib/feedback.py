@@ -71,15 +71,15 @@ class MovingGraph:
 # Your feedback_acc function remains mostly the same, but ensure it's using this updated calculate_movement
 
 # biofeedback thread
-def feedback_acc():
-    global buffered_feedback, signal
+def feedback_acc(data):
+    
     # time.sleep(2)
 
     graph = MovingGraph(ylim=(-0.05, 0.05))
 
     while True:
 
-        if buffered_feedback['acc']:
+        if data['feedback']['acc']:
             # Initialize previous values with None or some initial values
             prev_x, prev_y, prev_z = None, None, None
 
@@ -87,7 +87,7 @@ def feedback_acc():
             relative_movements = []
 
 
-            for acc in buffered_feedback['acc']:
+            for acc in data['feedback']['acc']:
                 # Extract x, y, z from the dictionary
                 x, y, z = acc['x'], acc['y'], acc['z']
 
@@ -134,6 +134,5 @@ def feedback_acc():
             graph.update(avg_dx, avg_dy, avg_dz)
             plt.pause(0.001)  # Allow plot to update
 
-
-            buffered_feedback['acc'].clear()
+            data['feedback']['acc'].clear()
         time.sleep(.5)
