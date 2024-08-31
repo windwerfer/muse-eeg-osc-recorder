@@ -1,3 +1,7 @@
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
+
 
 class MovingGraph:
     def __init__(self, window_size=20, update_interval=500, ylim=(-1, 1)):

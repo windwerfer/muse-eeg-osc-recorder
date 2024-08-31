@@ -15,7 +15,7 @@ def feedback_acc_start(data):
     
     # time.sleep(2)
 
-    graph = MovingGraph(ylim=(-0.05, 0.05))
+    graph = MovingGraph(ylim=(-1, 1))
 
     while True:
 
@@ -54,15 +54,6 @@ def feedback_acc_start(data):
             sum_dy = sum(abs(item['dy']) for item in relative_movements)
             sum_dz = sum(abs(item['dz']) for item in relative_movements)
 
-            # Calculating the average
-            # First, check if relative_movements is not empty to avoid division by zero
-            if relative_movements:
-                count = len(relative_movements)
-                avg_dx = sum_dx / count
-                avg_dy = sum_dy / count
-                avg_dz = sum_dz / count
-            else:
-                avg_dx, avg_dy, avg_dz = 0, 0, 0
 
                 # After processing all data, get the total movement
 
@@ -71,7 +62,7 @@ def feedback_acc_start(data):
             # sys.stdout.write(f"\r{avg_dx:18.16f}   {avg_dy:18.16f}    {avg_dz:18.16f}            \n")
             # sys.stdout.flush()
 
-            graph.update(avg_dx, avg_dy, avg_dz)
+            graph.update(sum_dx, sum_dy, sum_dz)
             plt.pause(0.001)  # Allow plot to update
 
             data['feedback']['acc'].clear()
