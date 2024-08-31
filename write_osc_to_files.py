@@ -45,15 +45,15 @@ def main():
     osc_thread = threading.Thread(target=osc_start, args=(data,), daemon=True)
     osc_thread.start()
 
-    if data['conf']['feedback_acc']:
-         # Starting the separate thread  for writing to file
-        feedback_thread = threading.Thread(target=feedback_acc_start, daemon=True)
-        feedback_thread.start()
+    # if data['conf']['feedback_acc']:
+    #      # Starting the separate thread  for writing to file
+    #     feedback_thread = threading.Thread(target=feedback_acc_start, args=(data,), daemon=True)
+    #     feedback_thread.start()
 
     try:
         while True:
-            # feedback_acc()
-            time.sleep(1)
+            feedback_acc_start(data)
+            time.sleep(0.2)
     except KeyboardInterrupt:
         gracefully_end(data)
 
