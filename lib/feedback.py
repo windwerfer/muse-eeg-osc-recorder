@@ -5,65 +5,76 @@ from matplotlib.animation import FuncAnimation
 
 import numpy as np
 
+from lib.feedback_filters import EMAFilter, LowPassFilter
 from lib.feedback_graph import MovingGraph
 
+import collections
 
-# Your feedback_acc function remains mostly the same, but ensure it's using this updated calculate_movement
-
-# biofeedback thread
 def feedback_acc_start(data):
-    
-    # time.sleep(2)
 
-    graph = MovingGraph(ylim=(-1, 1))
+    show_graph = False
+    if show_graph:
+        graph = MovingGraph(ylim=(-1, 1))
+    WINDOW_SIZE = 5
+    dx_queue = collections.deque(maxlen=WINDOW_SIZE)
+    dy_queue = collections.deque(maxlen=WINDOW_SIZE)
+    dz_queue = collections.deque(maxlen=WINDOW_SIZE)
+
+    ema_dx = EMAFilter(alpha=0.1)
+    ema_dy = EMAFilter(alpha=0.1)
+    ema_dz = EMAFilter(alpha=0.1)
+
+    lp_filter = LowPassFilter(cutoff_frequency=0.1, sampling_rate=2)
+
+    # Define a threshold for detecting nods
+    NOD_THRESHOLD = 0.5  # Adjust this value based on your data
 
     while True:
-
         if data['feedback']['acc']:
-            # Initialize previous values with None or some initial values
             prev_x, prev_y, prev_z = None, None, None
-
-            # List to store relative movements
             relative_movements = []
 
-
             for acc in data['feedback']['acc']:
-                # Extract x, y, z from the dictionary
                 x, y, z = acc['x'], acc['y'], acc['z']
 
-                # Calculate relative movement
                 if prev_x is not None:
-                    # Calculate the difference from the previous reading
                     dx = x - prev_x
                     dy = y - prev_y
                     dz = z - prev_z
-
-                    # Store the relative movement
                     relative_movements.append({'dx': dx, 'dy': dy, 'dz': dz})
                 else:
-                    # For the first iteration, we can't calculate a difference, so we might
-                    # choose to either skip this, set to zero, or use the current values directly
-                    # Here, setting to zero for consistency with no movement concept:
                     relative_movements.append({'dx': 0, 'dy': 0, 'dz': 0})
 
-                # Update previous values for next iteration
                 prev_x, prev_y, prev_z = x, y, z
 
-            # Summing up all relative movements
             sum_dx = sum(abs(item['dx']) for item in relative_movements)
             sum_dy = sum(abs(item['dy']) for item in relative_movements)
             sum_dz = sum(abs(item['dz']) for item in relative_movements)
 
+            # dx_queue.append(sum_dx)
+            # dy_queue.append(sum_dy)
+            # dz_queue.append(sum_dz)
 
-                # After processing all data, get the total movement
+            # avg_dx = sum(dx_queue) / len(dx_queue)
+            # avg_dy = sum(dy_queue) / len(dy_queue)
+            # avg_dz = sum(dz_queue) / len(dz_queue)
+            #
+            # filtered_dx = ema_dx.update(sum_dx)
+            # filtered_dy = ema_dy.update(sum_dy)
+            # filtered_dz = ema_dz.update(sum_dz)
 
-            #if signal['is_good']:
+            fv = lp_filter.update([sum_dx, sum_dy, sum_dz])
 
-            # sys.stdout.write(f"\r{avg_dx:18.16f}   {avg_dy:18.16f}    {avg_dz:18.16f}            \n")
-            # sys.stdout.flush()
+            data['stats']['nod'] = fv[0] + fv[1] + fv[2]
 
-            graph.update(sum_dx, sum_dy, sum_dz)
-            plt.pause(0.001)  # Allow plot to update
+            # Detect nodding motion
+            if (fv[0] + fv[1] + fv[2] ) > 0.2:
+                print("Nod detected!")
+            #print(filtered_values[1])
+            if show_graph:
+                graph.update(fv[0], fv[1], fv[2])
+                plt.pause(0.001)
 
             data['feedback']['acc'].clear()
-        time.sleep(.5)
+        time.sleep(4)
+

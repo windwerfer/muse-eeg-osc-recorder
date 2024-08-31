@@ -50,15 +50,17 @@ def start_stats(data):
 
         # cpu usage for the complete processor # ({data['stats']['cpu_one_core']}/{data['stats']['nr_cpu_cores']})
         data['stats']['cpu'] = get_process_cpu_usage(data)
-        if data['feedback']['acc']:
-            # if False:
-            acc = data['feedback']['acc'][-1]
-            x = acc['x']
-            y = acc['y']
-            z = acc['z']
-            acc = f" | {x:<18.16f} {y:<18.16f} {z:<18.16f}"
-        else:
-            acc = ""
+
+        si = rec = acc = cpu = nod = mem = ''
+        if False:
+            if data['feedback']['acc']:
+                # if False:
+                a = data['feedback']['acc'][-1]
+                x = a['x']
+                y = a['y']
+                z = a['z']
+                acc = f" | {x:<18.16f} {y:<18.16f} {z:<18.16f}"
+
 
         if True:
             cpu = f" | cpu: {data['stats']['cpu']:>4.1f}%"
@@ -73,11 +75,20 @@ def start_stats(data):
                 rec = "wait"
 
         if True:
-            m = round(data['stats']['process_pointer'].memory_percent(), 1)
+            #m = round(data['stats']['process_pointer'].memory_percent(), 1)
+            mem_info = data['stats']['process_pointer'].memory_info()
+            # Convert bytes to megabytes
+            m = round(mem_info.rss / (1024 ** 2),0)
             mem = f" | mem: {m}%"
 
+        if True:
+            try:
+                nod = f" | nod: {data['stats']['nod']:<18.16f}"
+            except Exception as e:
+                pass
+
         # cpu usage, received osc streams, good fit
-        sys.stdout.write(f"\r{data['stats']['counter']} {rec}{cpu}{mem}{acc}{si} ")
+        sys.stdout.write(f"\r{data['stats']['counter']} {rec}{cpu}{mem}{acc}{si}{nod} ")
         sys.stdout.flush()
 
         if data['stats']['counter'] == '-':
