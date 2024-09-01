@@ -19,9 +19,14 @@ def feedback_acc_start(data):
     if show_graph:
         graph = MovingGraph(ylim=(-1, 1))
     # To store the history of movements
-    movement_history = collections.deque(maxlen=20)  # Adjust the length as needed
+    movement_history = collections.deque(maxlen=10)  # Adjust the length as needed
+
+    last_play_time = 0  # Timestamp of the last time play_sound was called
+    cooldown = 60  # Cooldown period in seconds
 
     while True:
+
+
         if data['feedback']['acc']:
             prev_x, prev_y, prev_z = None, None, None
             current_movement = {'dx': 0, 'dy': 0, 'dz': 0}
@@ -40,7 +45,14 @@ def feedback_acc_start(data):
             #print(current_movement)
 
             # Analyze the movement history for patterns like nodding or shaking
-            analyze_movement(movement_history)
+            moved = analyze_movement(movement_history)
+            if moved > 0:
+                current_time = time.time()
+                if current_time - last_play_time >= cooldown:
+                    play_sound("audio/wolf.mp3", background=False)      # boreal_owl.mp3
+                    last_play_time = current_time
+
+            data['stats']['moved'] = f"{moved}"
 
             # Clear the data for next iteration
             data['feedback']['acc'].clear()
@@ -49,8 +61,10 @@ def feedback_acc_start(data):
 
 def analyze_movement(history):
     # Parameters for nod detection
-    THRESHOLD_MAGNITUDE = 0.1  # Minimum movement to be considered significant
+    THRESHOLD_MAGNITUDE = 0.11  # Minimum movement to be considered significant
     CONSISTENCY_THRESHOLD = 0.6  # 60% of movements should be in the same direction for a nod
+
+    moved = {'dx':0,'dy':0}
 
     # Analyze x and y movements for nodding patterns
     for axis in ['dx', 'dy']:
@@ -66,7 +80,7 @@ def analyze_movement(history):
 
             if direction_ratio > CONSISTENCY_THRESHOLD:
 
-                play_sound( "audio/boreal_owl.mp3", background=False)
+               return True
 
                 # # Determine the type of movement based on which axis and direction is dominant
                 # if axis == 'dx' and positive_movements > negative_movements:
@@ -78,5 +92,6 @@ def analyze_movement(history):
                 # elif axis == 'dy':
                 #     print("Left shake detected!")
 
+    return False
     # Additional check for circular or more complex movements could be implemented here
     # For instance, checking if movements alternate between axes in a pattern

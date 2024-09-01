@@ -1,5 +1,9 @@
-lib/__pycache__
-__pycache__
+#ignore cache
+lib/__pycache__/
+__pycache__/
+*.py[cod]
+
+#ignore folders
 .idea
 eeglab
 matlab_sample_data

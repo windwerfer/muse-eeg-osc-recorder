@@ -79,13 +79,17 @@ def start_stats(data):
             mem_info = data['stats']['process_pointer'].memory_info()
             # Convert bytes to megabytes
             m = round(mem_info.rss / (1024 ** 2),0)
-            mem = f" | mem: {m}%"
+            mem = f" | mem: {m:3.0f}MB"
 
         if True:
             try:
-                nod = f" | nod: {data['stats']['nod']:<18.16f}"
+                #nod = f" | nod: {data['stats']['nod']:<18.16f}"
+                nod = f" | nod: {data['stats']['moved']}"
+
             except Exception as e:
                 pass
+
+
 
         # cpu usage, received osc streams, good fit
         sys.stdout.write(f"\r{data['stats']['counter']} {rec}{cpu}{mem}{acc}{si}{nod} ")
