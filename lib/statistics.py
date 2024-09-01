@@ -63,7 +63,7 @@ def start_stats(data):
 
 
         if True:
-            cpu = f" | cpu: {data['stats']['cpu']:>4.1f}%"
+            cpu = f" | cpu: {data['stats']['cpu_one_core']:>4.1f}%"
 
         if True:
             si = f" | signal: {data['signal']['is_good']}"
