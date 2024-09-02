@@ -145,7 +145,7 @@ def osc_start(data):
     if data['conf']['add_signal_quality_file']:
         dispatcher.map("/muse/elements/horseshoe", partial(handle_isGoodMM_message, data=data))  # mind monitor osc
 
-    server = osc_server.ThreadingOSCUDPServer((data['conf']['ip'], data['conf']['port']), dispatcher)
+    server = osc_server.BlockingOSCUDPServer((data['conf']['ip'], data['conf']['port']), dispatcher)
 
     print(f"Listening on port {data['conf']['port']} for OSC messages... ")
 

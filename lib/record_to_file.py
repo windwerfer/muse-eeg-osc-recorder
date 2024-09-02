@@ -181,6 +181,8 @@ def close_and_zip_files(data):
         for b in data['feedback']:
             data['feedback'][b].clear()
 
+        data['stats']['moved'] = 0
+
         sys.stdout.write(f"\r+{zip_file_name} saved.                     \n")
         sys.stdout.flush()
         # print(f'\n  {zip_file_name} saved.')

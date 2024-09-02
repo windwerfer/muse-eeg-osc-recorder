@@ -49,8 +49,9 @@ def feedback_acc_start(data):
             if moved > 0:
                 current_time = time.time()
                 if current_time - last_play_time >= cooldown:
-                    play_sound("audio/wolf.mp3", background=False)      # boreal_owl.mp3
+                    play_sound("audio/wolf.mp3", volume=100, background=False)      # boreal_owl.mp3
                     last_play_time = current_time
+                    data['stats']['moved_sum'] += 1
 
             data['stats']['moved'] = f"{moved}"
 

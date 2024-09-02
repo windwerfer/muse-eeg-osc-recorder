@@ -30,7 +30,7 @@ def change_volume(volume, ipc_path):
     except subprocess.CalledProcessError as e:
         print(f"Failed to change volume: {e}")
 
-def play_sound(filename, background=False):
+def play_sound(filename, volume=50, background=False):
     """
     Play sound using mpv with the option to run in the background.
 
@@ -41,7 +41,7 @@ def play_sound(filename, background=False):
     ipc_path = os.path.expanduser("~/mpv_socket")
 
     # Command to play the sound using mpv with an IPC server
-    cmd = f"mpv --no-video --volume=50 --input-ipc-server={ipc_path} \"{filename}\""
+    cmd = f"mpv --no-video --volume={volume} --input-ipc-server={ipc_path} \"{filename}\""
 
     # Start mpv in a subprocess
     if background:

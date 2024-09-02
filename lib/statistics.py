@@ -63,7 +63,8 @@ def start_stats(data):
 
 
         if True:
-            cpu = f" | cpu: {data['stats']['cpu_one_core']:>4.1f}%"
+            #cpu = f" | 1cpu: {data['stats']['cpu_one_core']:>4.1f}%"
+            cpu = f" | ∑cpu: {data['stats']['cpu']:>4.1f}%"
 
         if True:
             si = f" | signal: {data['signal']['is_good']}"
@@ -84,7 +85,7 @@ def start_stats(data):
         if True:
             try:
                 #nod = f" | nod: {data['stats']['nod']:<18.16f}"
-                nod = f" | nod: {data['stats']['moved']}"
+                nod = f" | nod: {data['stats']['moved_sum']}"
 
             except Exception as e:
                 pass
