@@ -84,7 +84,7 @@ def process_buffers(data):
         # print(status_isGood)
         # print(status_electrodeFit)
 
-        if data['buffer']['eeg']:
+        if not data['buffer']['eeg'].empty():
 
             if last_received_time is None:
                 current_timestamp_str = time.strftime("%Y.%m.%d_%H.%M")

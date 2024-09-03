@@ -14,13 +14,46 @@ class Shared_Data:
             'file': {'name': {}, 'open': {}, 'csv_writer': {}},
             'folder': {'out': "out_eeg", 'tmp': ''}
         }
-        self._signal_lock = threading.Lock()
+        self._lock = threading.RLock()
 
     def set_signal_is_good(self, is_good):
-        with self._signal_lock:
+        with self._lock:
             self._data['signal']['is_good'] = is_good
 
     def set_signal_electrode(self, electrode):
-        with self._signal_lock:
+        with self._lock:
             self._data['signal']['electrode'] = electrode
 
+
+    # the following for
+    def __getitem__(self, key):
+        with self._lock:
+            if key in self._data:
+                return self._data[key]
+
+    def __setitem__(self, key, value):
+        with self._lock:
+            if key in self._data:
+                self._data[key] = value
+            else:
+                raise KeyError(f"Cannot set {key}. Only {', '.join(self._data.keys())} are allowed.")
+
+    def append(self, key, value):
+        with self._lock:
+            if key not in self._data:
+                raise KeyError(f"No such dataset: {key}")
+            self._data[key].append(value)
+
+    def clear(self, key):
+        with self._lock:
+            if key in self._data:
+                self._data[key].clear()
+            else:
+                raise KeyError(f"No such dataset: {key}")
+
+    def set_value(self, key, value):
+        with self._lock:
+            if key in self._data:
+                self._data[key] = value
+            else:
+                raise KeyError(f"Cannot set {key}. Only {', '.join(self._data.keys())} are allowed.")

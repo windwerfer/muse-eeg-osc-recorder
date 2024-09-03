@@ -70,7 +70,7 @@ def start_stats(data):
             si = f" | signal: {data['signal']['is_good']}"
 
         if True:
-            if data['buffer']['eeg']:
+            if not data['buffer']['eeg'].empty():
                 rec = "rec "
             else:
                 rec = "wait"

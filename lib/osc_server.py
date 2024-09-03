@@ -10,7 +10,7 @@ import math
 
 
 # Define the function to handle incoming OSC messages
-def handle_eeg_message(address, *args, buffer_eeg, buffer_signal_quality, signal, conf):
+def handle_eeg_message( buffer_eeg, buffer_signal_quality, signal, conf, address, *args):
 
     eeg_data = {}
     sig_data = {}
@@ -61,7 +61,7 @@ def handle_eeg_message(address, *args, buffer_eeg, buffer_signal_quality, signal
         print(f"Received EEG OSC message - Address: {address}, Args: {args}")
 
 
-def handle_ppg_message(address, *args, buffer_ppg, conf):
+def handle_ppg_message( buffer_ppg, conf, address, *args):
 
     ppg_data = {}
 
@@ -81,7 +81,7 @@ def handle_ppg_message(address, *args, buffer_ppg, conf):
     buffer_ppg.put(ppg_data)
 
 
-def handle_acc_message(address, *args, buffer_acc, feedback_acc, conf):
+def handle_acc_message( buffer_acc, feedback_acc, conf, address, *args):
 
     acc_data = {}
 
@@ -96,25 +96,25 @@ def handle_acc_message(address, *args, buffer_acc, feedback_acc, conf):
         feedback_acc.put(acc_data)
 
 
-def handle_isGood_message(address, *args, data):
+def handle_isGood_message( data, address, *args):
     # thread save variable assignment (locked)
     data.set_signal_is_good( args[0] )
 
 
-def handle_electrodeFit_message(address, *args, data):
+def handle_electrodeFit_message(data, address, *args):
 
     el = []
     for i, arg in enumerate(args):
-        el.append(arg)
+        el.append(int(arg))
     # thread save variable assignment (locked)
     data.set_signal_electrode( el )
 
 
-def handle_isGoodMM_message(address, *args, data):
+def handle_isGoodMM_message( data, address, *args):
 
     el = []
     for i, arg in enumerate(args):
-        el.append(arg)
+        el.append(int(arg))
     # thread save variable assignment (locked)
     data.set_signal_electrode( el )
 
@@ -134,24 +134,24 @@ def osc_start(data):
 
     dispatcher = dispatcher.Dispatcher()
     # muse app osc streams
-    dispatcher.map("/eeg", partial(handle_eeg_message, data=(data['buffer']['eeg'], data['buffer']['signal_quality'], data['signal'], data['conf'])))  # muse app osc      buffer_eeg, buffer_signal_quality, data_signal, conf
+    dispatcher.map("/eeg", partial(handle_eeg_message,  data['buffer']['eeg'], data['buffer']['signal_quality'], data['signal'], data['conf']))  # muse app osc      buffer_eeg, buffer_signal_quality, data_signal, conf
     if data['conf']['add_heart_rate_file']:
-        dispatcher.map("/ppg", partial(handle_ppg_message, data=(data['buffer']['ppg'], data['conf'])))  # muse app osc
+        dispatcher.map("/ppg", partial(handle_ppg_message, data['buffer']['heart_rate'], data['conf']))  # muse app osc
     if data['conf']['add_acc_file']:
-        dispatcher.map("/acc", partial(handle_acc_message, data=(data['buffer']['acc'], data['feedback']['acc'], data['conf'])))  # muse app osc               buffer_acc, feedback_acc, conf):
+        dispatcher.map("/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf']))  # muse app osc               buffer_acc, feedback_acc, conf):
 
     if data['conf']['add_signal_quality_file']:
-        dispatcher.map("/is_good", partial(handle_isGood_message, data=(data['signal'], )))  # muse app osc
+        dispatcher.map("/is_good", partial(handle_isGood_message, data, ))  # muse app osc
         if data['conf']['add_signal_quality_for_each_electrode']:
-            dispatcher.map("/hsi", partial(handle_electrodeFit_message, data=(data['signal'], )))  # muse app osc
+            dispatcher.map("/hsi", partial(handle_electrodeFit_message, data, ))  # muse app osc
 
 
     # mind monitor osc streams
-    dispatcher.map("/muse/eeg", partial(handle_eeg_message, data=(data['buffer']['eeg'], data['buffer']['signal_quality'], data['signal'], data['conf'])))  # mind monitor osc
+    dispatcher.map("/muse/eeg", partial(handle_eeg_message, data['buffer']['eeg'], data['buffer']['signal_quality'], data['signal'], data['conf']))  # mind monitor osc
     if data['conf']['add_acc_file']:
-        dispatcher.map("/muse/acc", partial(handle_acc_message, data=(data['buffer']['acc'], data['feedback']['acc'], data['conf'])))  # muse app osc
+        dispatcher.map("/muse/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf']))  # muse app osc
     if data['conf']['add_signal_quality_file']:
-        dispatcher.map("/muse/elements/horseshoe", partial(handle_isGoodMM_message, data=(data['signal'], )))  # mind monitor osc
+        dispatcher.map("/muse/elements/horseshoe", partial(handle_isGoodMM_message, data, ))  # mind monitor osc
 
     server = osc_server.BlockingOSCUDPServer((data['conf']['ip'], data['conf']['port']), dispatcher)
 
