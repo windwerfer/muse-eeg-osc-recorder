@@ -35,7 +35,7 @@ def parse_arguments():
                         help='Default "0.0.0.0". IP address for the server to listen to. "0.0.0.0" listens to all ip addresses.')
     parser.add_argument('--file_name_prefix', type=str, default='eeg_',
                         help='Default "eeg_". File name prefix for output files.')
-    parser.add_argument('--feedback_acc', type=bool, default=True,
+    parser.add_argument('--feedback_acc', type=bool, default=False,
                         help='Default 0. Use the Accelerometer data to find sleepiness.')
 
     return parser.parse_args()

@@ -48,6 +48,10 @@ or in mindmonitor click on the 4th symbol in the bottom row (looks like a wifi s
 
 the recorder script and the muse app do not need to be on the same device. could be a computer for recoding too. just need to set the correct ip address (address of the computer you want to record the script on) in the muse app / mindmonitor.
 
-Bonus: there is a small bio feedback part, that plays a mp3 file whenever you get sleepy and your head nodds (uses the accelerometer data)
+Bonus: there is a small bio feedback part, that plays a mp3 file whenever you get sleepy and your head nodds (uses the accelerometer data). to enable it start programm with
 
-Future: some graphs to be generated, but not yet done (that why the python library matplotlib is needed)
+```
+python write_osc_to_files.py --feedback_acc 1
+```
+
+Future maybe: some graphs to be generated, but not yet done (that why the python library matplotlib is needed)
