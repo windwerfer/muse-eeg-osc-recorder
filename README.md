@@ -1,4 +1,4 @@
-Record raw eeg, ppg (heart rate), acc (movement) values from the muse app or mindmonitor through the osc stream that they generate.
+Record raw eeg, ppg (heart rate), acc (movement) values from the muse app or mindmonitor through the osc stream that these apps (can) send.
 
 they can be directly imported into EegLab for further analysis
 
@@ -47,3 +47,7 @@ to start recoding, go to the muse app and start a meditation. it will automatica
 or in mindmonitor click on the 4th symbol in the bottom row (looks like a wifi signal) and it will start streaming the muse data.
 
 the recorder script and the muse app do not need to be on the same device. could be a computer for recoding too. just need to set the correct ip address (address of the computer you want to record the script on) in the muse app / mindmonitor.
+
+Bonus: there is a small bio feedback part, that plays a mp3 file whenever you get sleepy and your head nodds (uses the accelerometer data)
+
+Future: some graphs to be generated, but not yet done (that why the python library matplotlib is needed)
