@@ -66,7 +66,7 @@ def start_stats(data):
             #cpu = f" | 1cpu: {data['stats']['cpu_one_core']:>4.1f}%"
             cpu = f" | ∑cpu: {data['stats']['cpu']:>4.1f}%"
 
-        if True:
+        if False:
             si = f" | signal: {data['signal']['is_good']}"
 
         if True:

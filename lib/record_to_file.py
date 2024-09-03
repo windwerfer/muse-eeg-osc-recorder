@@ -7,6 +7,7 @@ import sys
 import time
 import zipfile
 
+from queue import Queue
 
 
 
@@ -29,17 +30,24 @@ def write_to_file(name, data):
 
         sr = data['conf']['sampling_rate'][name]
 
-        for i, b in enumerate(data['buffer'][name]):
+        # Retrieve and process all items in the queue
+        while not data['buffer'][name].empty():
+            b = data['buffer'][name].get()  # Get an item from the queue
+
             if data['conf']['add_time_column']:
-                current_timestamp = last_timestamp[name] + i / sr * 1000
+                current_timestamp = last_timestamp[name] + 1 / sr * 1000
                 b['timestamp'] = round(current_timestamp, 4)
+
             data['file']['csv_writer'][name].writerow(b)
             data['file']['open'][name].flush()
 
-        if data['conf']['add_time_column']:
-            last_timestamp[name] = current_timestamp + (1 / sr * 1000)
+            # Mark the task as done
+            data['buffer'][name].task_done()
 
-        data['buffer'][name].clear()
+            if data['conf']['add_time_column']:
+                last_timestamp[name] = current_timestamp
+
+
     except Exception as e:
         if data['conf']['exiting'] != True:
             print(f'    !! 10s of *{name}* data lost !!  ')
@@ -175,11 +183,11 @@ def close_and_zip_files(data):
             data['file']['name'][f] = ''
         data['folder']['tmp'] = ''
 
-        # clear buffers (in case they where not used completly)
+        # reinitialize the Queues in case they were not empty
         for b in data['buffer']:
-            data['buffer'][b].clear()
+            data['buffer'][b] = Queue()
         for b in data['feedback']:
-            data['feedback'][b].clear()
+            data['feedback'][b] = Queue()
 
         data['stats']['moved'] = 0
 

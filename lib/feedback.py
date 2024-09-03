@@ -10,7 +10,7 @@ from lib.feedback_graph import MovingGraph
 
 import collections
 
-from lib.play_sound import play_sound
+from lib.play_sound_termux import play_sound
 
 
 def feedback_acc_start(data):
@@ -19,19 +19,20 @@ def feedback_acc_start(data):
     if show_graph:
         graph = MovingGraph(ylim=(-1, 1))
     # To store the history of movements
-    movement_history = collections.deque(maxlen=10)  # Adjust the length as needed
+    movement_history = collections.deque(maxlen=20)  # Adjust the length as needed
 
     last_play_time = 0  # Timestamp of the last time play_sound was called
     cooldown = 60  # Cooldown period in seconds
 
     while True:
 
-
-        if data['feedback']['acc']:
+        if not data['feedback']['acc'].empty():
             prev_x, prev_y, prev_z = None, None, None
             current_movement = {'dx': 0, 'dy': 0, 'dz': 0}
 
-            for acc in data['feedback']['acc']:
+            # Retrieve and process all items in the queue
+            while not data['feedback']['acc'].empty():
+                acc = data['feedback']['acc'].get()  # Get and remove an item from the queue
                 x, y, z = acc['x'], acc['y'], acc['z']
 
                 if prev_x is not None:
@@ -42,21 +43,19 @@ def feedback_acc_start(data):
 
             # Add the current movement to history
             movement_history.append(current_movement)
-            #print(current_movement)
+            # print(current_movement)
 
             # Analyze the movement history for patterns like nodding or shaking
             moved = analyze_movement(movement_history)
             if moved > 0:
                 current_time = time.time()
                 if current_time - last_play_time >= cooldown:
-                    play_sound("audio/wolf.mp3", volume=100, background=False)      # boreal_owl.mp3
+                    play_sound("audio/wolf.mp3", volume=100, background=False)  # boreal_owl.mp3
                     last_play_time = current_time
                     data['stats']['moved_sum'] += 1
 
             data['stats']['moved'] = f"{moved}"
 
-            # Clear the data for next iteration
-            data['feedback']['acc'].clear()
         time.sleep(0.5)  # Adjust sleep time as necessary
 
 

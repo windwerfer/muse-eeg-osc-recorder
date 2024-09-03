@@ -33,7 +33,8 @@ def main():
     stats_thread.start()
 
     # pycharm has problems with the input.. works great in termux
-    if not is_run_in_pycharm():
+    # if not is_run_in_pycharm():
+    if False:
         input_thread = threading.Thread(target=start_input, args=(data,), daemon=True)
         input_thread.start()
 
