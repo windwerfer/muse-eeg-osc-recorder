@@ -82,7 +82,7 @@ def start_stats(data):
             m = round(mem_info.rss / (1024 ** 2),0)
             mem = f" | mem: {m:3.0f}MB"
 
-        if True:
+        if data['conf']['feedback_acc']:
             try:
                 #nod = f" | nod: {data['stats']['nod']:<18.16f}"
                 nod = f" | nod: {data['stats']['moved_sum']}"

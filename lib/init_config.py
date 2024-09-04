@@ -8,8 +8,8 @@ def parse_arguments():
     # Define command-line arguments for each configuration parameter
     # parser.add_argument('--only_record_if_signal_is_good', action='store_false',
     # parser.add_argument('--only_record_if_signal_is_good', type=bool, default=True,
-    parser.add_argument('--only_record_if_signal_is_good', type=bool, default=False, choices=[0, 1],
-                        help='Default 0. Record osc only if all sensors have good signal quality.')
+    parser.add_argument('--only_record_if_signal_is_good', action='store_true',
+                        help='Default disabled. Record osc only if all sensors have good signal quality.')
     parser.add_argument('--if_signal_is_not_good_set_signal_to', type=str, default='record_received_signal',
                         choices=['NaN', '0.0', 'record_received_signal'],
                         help='Default "record_received_signal". The Muse device has a Signal Quality marker, that will be 0 if the Signal is bad/not received correctly. set to "record_received_signal" to handle afterwards (most flexible). Substitue with this value (NaN = no data received marker, 0.0 = blank value), but you might lose contextual information. "record_received_signal" will save the received value, even though it is most likely an artifact, needs more processing after recording.')
@@ -18,25 +18,25 @@ def parse_arguments():
     parser.add_argument('--add_acc_file', type=bool, default=True, choices=[0, 1],
                         help='Default 1. Add separete file for accelaration (gryoscope) value.')
     parser.add_argument('--add_signal_quality_file', type=bool, default=True, choices=[0, 1],
-                        help='Default 1. Add signal quality file. each row corresponds to the same row in the eeg file. they are separate to keep the fileformat compatable with eeglab.')
+                        help='Default: 1. Add signal quality file. each row corresponds to the same row in the eeg file. they are separate to keep the fileformat compatable with eeglab.')
     parser.add_argument('--add_signal_quality_for_each_electrode', type=bool, default=True, choices=[0, 1],
                         help='Default 1. Add signal quality column for each electrode.')
-    parser.add_argument('--add_aux_columns', type=bool, default=False, choices=[0, 1],
-                        help='Default 0. Add auxiliary columns (aux0 and aux1).')
-    parser.add_argument('--add_time_column', type=bool, default=False, choices=[0, 1],
-                        help='Default 1. Add a time column, but some programms like EegLab do not use a tome column.')
-    parser.add_argument('--use_tabseparator_for_csv', type=bool, default=False, choices=[0, 1],
-                        help='Default 0. Use tab as separator in CSV. Set to 0 for comma separator (default).')
-    parser.add_argument('--add_header_row', type=bool, default=False, choices=[0, 1],
-                        help='Default 1. Add header row, but EegLab doesnt accept a header row.')
+    parser.add_argument('--add_aux_columns', action='store_true',
+                        help='Add auxiliary signal columns (aux0 and aux1) for recording eeg signals. Default: disabled because you need to connect a external electrode to the muse (most people dont use it).')
+    parser.add_argument('--add_time_column', action='store_true',
+                        help='Add a time column to the signal recording. Default: disabled because most programms expect a fixed amount of signals per second (eg 256 for the muse).')
+    parser.add_argument('--use_tabseparator_for_csv', action='store_true',
+                        help='Use tab as separator in CSV. Default is comma separator.')
+    parser.add_argument('--add_header_row', action='store_true',
+                        help='Add header row (eg tp9,af7,af8,tp10 for the eeg data). Default disabled because EegLab doesnt accept a header row.')
     parser.add_argument('--port', type=int, default=5000,
                         help='Default 5000. Port number for the server.')
     parser.add_argument('--ip', type=str, default='0.0.0.0',
                         help='Default "0.0.0.0". IP address for the server to listen to. "0.0.0.0" listens to all ip addresses.')
     parser.add_argument('--file_name_prefix', type=str, default='eeg_',
                         help='Default "eeg_". File name prefix for output files.')
-    parser.add_argument('--feedback_acc', type=bool, default=False,
-                        help='Default 0. Use the Accelerometer data to find sleepiness.')
+    parser.add_argument('--feedback_acc', action='store_true',
+                        help='Use the Accelerometer data to find sleepiness. Default: disabled')
 
     return parser.parse_args()
 
