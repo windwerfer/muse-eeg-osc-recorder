@@ -16,14 +16,6 @@ class Shared_Data:
         }
         self._lock = threading.RLock()
 
-    def set_signal_is_good(self, is_good):
-        with self._lock:
-            self._data['signal']['is_good'] = is_good
-
-    def set_signal_electrode(self, electrode):
-        with self._lock:
-            self._data['signal']['electrode'] = electrode
-
 
     # the following for
     def __getitem__(self, key):
