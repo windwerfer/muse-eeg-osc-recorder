@@ -190,6 +190,7 @@ def close_and_zip_files(data):
             data['feedback'][b] = Queue()
 
         data['stats']['moved'] = 0
+        data['stats']['moved_continuous'] = 0
 
         sys.stdout.write(f"\r+{zip_file_name} saved.                     \n")
         sys.stdout.flush()

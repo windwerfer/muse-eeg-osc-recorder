@@ -23,9 +23,9 @@ def feedback_acc_start(data):
 
     last_play_time = 0  # Timestamp of the last time play_sound was called
     cooldown = 60  # Cooldown period in seconds
-    cooldown_nod_count = 120  # Cooldown period in seconds
+    cooldown_nod = 120  # Cooldown period in seconds
 
-    contious_nodds = 0
+
 
     while True:
 
@@ -50,21 +50,31 @@ def feedback_acc_start(data):
 
             # Analyze the movement history for patterns like nodding or shaking
             moved = analyze_movement(movement_history)
+            current_time = time.time()
+
             if moved > 0:
-                current_time = time.time()
+
+                if current_time - last_play_time >= cooldown_nod:
+                    data['stats']['moved_continuous'] += 1
+
                 if current_time - last_play_time >= cooldown:
-                    if contious_nodds > 4:
+
+                    data['stats']['moved_sum'] += 1
+
+                    if data['stats']['moved_continuous'] > 4:
                         play_sound("audio/biohazard-alarm.mp3", volume=100, background=False)  # boreal_owl.mp3
                     else:
                         play_sound("audio/wolf.mp3", volume=100, background=False)  # boreal_owl.mp3
                     last_play_time = current_time
-                    data['stats']['moved_sum'] += 1
-                if current_time - last_play_time >= cooldown_nod_count:
-                    contious_nodds += 1
-                else:
-                    contious_nodds = 0
 
-            data['stats']['moved'] = f"{moved}"
+
+            else:
+                if current_time >= last_play_time + cooldown_nod:
+                    data['stats']['moved_continuous'] = 0
+
+
+
+            #data['stats']['moved'] = f"{moved}"
 
         time.sleep(0.5)  # Adjust sleep time as necessary
 

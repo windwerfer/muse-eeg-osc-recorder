@@ -85,7 +85,7 @@ def start_stats(data):
         if data['conf']['feedback_acc']:
             try:
                 #nod = f" | nod: {data['stats']['nod']:<18.16f}"
-                nod = f" | nod: {data['stats']['moved_sum']}"
+                nod = f" | nod: {data['stats']['moved_sum']} ∞{data['stats']['moved_continuous']}"
 
             except Exception as e:
                 pass
