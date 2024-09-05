@@ -10,7 +10,8 @@ class Shared_Data:
             'columns': {'eeg': [], 'heart_rate': [], 'acc': [], 'signal_quality': []},
             'conf': {},
             'stats': {'refresh_interval': 0.5, 'cpu': 0, 'cpu_one_core': 0.0, 'nr_cpu_cores': 1, 'battery': None, 'recording': 0,
-         'moved': '', 'moved_sum': 0, 'moved_continuous': 0, 'counter': '-'},
+         'moved': '', 'moved_sum': 0, 'moved_continuous': 0, 'counter': '-',
+                      'rec_start_time':999999999999 },
             'file': {'name': {}, 'open': {}, 'csv_writer': {}},
             'folder': {'out': "out_eeg", 'tmp': ''}
         }

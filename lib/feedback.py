@@ -25,7 +25,7 @@ def feedback_acc_start(data):
     cooldown = 60  # Cooldown period in seconds
     cooldown_nod = 120  # Cooldown period in seconds
 
-    start_time = time.time()
+    # start_time = time.time()
     begin_after = 60   #minimum time before play in s
 
 
@@ -55,7 +55,7 @@ def feedback_acc_start(data):
             moved = analyze_movement(movement_history, data['conf']['nod_threshold_magnitude'])
             current_time = time.time()
 
-            if moved > 0 and current_time > start_time + begin_after:
+            if moved > 0 and current_time > data['stats']['rec_start_time'] + begin_after:
 
                 play = ''
                 vol = 100

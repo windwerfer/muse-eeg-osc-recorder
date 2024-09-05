@@ -107,10 +107,15 @@ def process_buffers(data):
                 if data['conf']['add_signal_quality_file']:
                     open_file('signal_quality', data, csv_delimiter=csv_delimiter)
 
+
+                data['stats']['rec_start_time'] = time.time()
+
                 # print('new file created:')
                 # print(f" {data['folder']['tmp']} created")
                 sys.stdout.write(f"\r {data['folder']['tmp']} created.                     \n")
                 sys.stdout.flush()
+
+
 
             write_to_file('eeg', data)
 
@@ -158,11 +163,14 @@ def close_and_zip_files(data):
         for f in data['file']['open']:
             data['file']['open'][f].close()
 
-        sys.stdout.write(f"\r  files are beeing compressed. please wait a short while..                   ")
-        sys.stdout.flush()
+        #sys.stdout.write(f"\r  files are beeing compressed. please wait a short while..                   ")
+        #sys.stdout.flush()
+        
+        # recording lenght
+        rec_lenght = int( round( (time.time() - data['stats']['rec_start_time']) / 60, 0) )
 
         # Create a ZIP file with normal compression
-        zip_file_name = f"{data['folder']['tmp']}.zip"
+        zip_file_name = f"{data['folder']['tmp']}_{rec_lenght}min.zip"
         ff = []
         with zipfile.ZipFile(f"{data['folder']['out']}/{zip_file_name}", 'w', zipfile.ZIP_DEFLATED) as zipf:
             # pack all created files that are > 0 Bytes
@@ -183,15 +191,18 @@ def close_and_zip_files(data):
             data['file']['name'][f] = ''
         data['folder']['tmp'] = ''
 
-        # reinitialize the Queues in case they were not empty
+        # make sure all queues are empty
         for b in data['buffer']:
-            data['buffer'][b] = Queue()
+            while not data['buffer'][b].empty():
+                x = data['buffer'][b].get()
         for b in data['feedback']:
-            data['feedback'][b] = Queue()
+            while not data['feedback'][b].empty():
+                x = data['feedback'][b].get()
 
         data['stats']['moved'] = 0
         data['stats']['moved_continuous'] = 0
         data['stats']['moved_sum'] = 0
+        data['stats']['rec_start_time'] = 999999999999
 
         sys.stdout.write(f"\r+{zip_file_name} saved.                     \n")
         sys.stdout.flush()
@@ -205,10 +216,12 @@ def gracefully_end(data):
 
     data['conf']['exiting'] = True
 
+    sys.stdout.write(f"\r   (please wait.. finishing up)                    \n")
+    sys.stdout.flush()
     if data['folder']['tmp'] != '':
         close_and_zip_files(data)
 
-    print('\nend programm. all good.')
+    print('\nprogramm ended. all good.')
     os._exit(0)
 
 

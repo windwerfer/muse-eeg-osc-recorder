@@ -94,9 +94,9 @@ def init_conf(data):
 
 
     # nod_threshold_magnitude: how sensitive the nodding recognition is.
-    # good values are between 1.0 and 0.8 (0.8 beeing more sensitive and 1.0 less so)
-    # 0.8 seems best for me (very sensitiv), 0.09 probably good for people who move more like kRob,  1.0 relaxed
-    data['conf']['nod_threshold_magnitude'] = 0.8
+    # good values are between 0.10 and 0.08 (0.08 beeing more sensitive and 0.10 less so)
+    # 0.08 seems best for me (very sensitiv), 0.09 probably good for people who move more like kRob,  1.0 relaxed
+    data['conf']['nod_threshold_magnitude'] = 0.08
     # how slow do you nodd? each increase in number adds 0.5s to the recognised nod length (20 -> 10s nod is recognised)
     data['conf']['nod_length'] = 20
 
