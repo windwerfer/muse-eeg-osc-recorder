@@ -19,11 +19,14 @@ def feedback_acc_start(data):
     if show_graph:
         graph = MovingGraph(ylim=(-1, 1))
     # To store the history of movements
-    movement_history = collections.deque(maxlen=20)  # Adjust the length as needed
+    movement_history = collections.deque(maxlen=data['conf']['nod_length'])  # Adjust the length as needed
 
     last_play_time = 0  # Timestamp of the last time play_sound was called
     cooldown = 60  # Cooldown period in seconds
     cooldown_nod = 120  # Cooldown period in seconds
+
+    start_time = time.time()
+    begin_after = 60   #minimum time before play in s
 
 
 
@@ -49,28 +52,41 @@ def feedback_acc_start(data):
             # print(current_movement)
 
             # Analyze the movement history for patterns like nodding or shaking
-            moved = analyze_movement(movement_history)
+            moved = analyze_movement(movement_history, data['conf']['nod_threshold_magnitude'])
             current_time = time.time()
 
-            if moved > 0:
+            if moved > 0 and current_time > start_time + begin_after:
 
-                if current_time - last_play_time >= cooldown_nod:
-                    data['stats']['moved_continuous'] += 1
+                play = ''
+                vol = 100
 
                 if current_time - last_play_time >= cooldown:
 
                     data['stats']['moved_sum'] += 1
 
-                    if data['stats']['moved_continuous'] > 4:
-                        play_sound("audio/biohazard-alarm.mp3", volume=100, background=False)  # boreal_owl.mp3
+                    if data['stats']['moved_continuous'] == 5:
+                        play = "audio/biohazard-alarm.mp3"
+                        vol = 30
+                    elif data['stats']['moved_continuous'] == 6:
+                        play = "audio/biohazard-alarm.mp3"
+                        vol = 60
+                    elif data['stats']['moved_continuous'] > 6:
+                        play = "audio/biohazard-alarm.mp3"
+                        vol = 100
                     else:
-                        play_sound("audio/wolf.mp3", volume=100, background=False)  # boreal_owl.mp3
+                        play = 'audio/wolf.mp3'
                     last_play_time = current_time
 
+                    if current_time - last_play_time <= cooldown_nod:
+                        data['stats']['moved_continuous'] += 1
+
+                if play != '':
+                    play_sound(play, volume=vol, background=False)  # boreal_owl.mp3
 
             else:
                 if current_time >= last_play_time + cooldown_nod:
                     data['stats']['moved_continuous'] = 0
+                    pass
 
 
 
@@ -79,15 +95,17 @@ def feedback_acc_start(data):
         time.sleep(0.5)  # Adjust sleep time as necessary
 
 
-def analyze_movement(history):
-    # Parameters for nod detection
-    THRESHOLD_MAGNITUDE = 0.11  # Minimum movement to be considered significant
+def analyze_movement(history, nod_threshold_magnitude):
+    # Parameters for nod detection 
+    # nod_threshold_magnitude: 0.8 seems best for me (very sensitiv), 0.09 probably good for people who move more like kRob,  1.0 relaxed
+    # x+y was also good..
+    THRESHOLD_MAGNITUDE = nod_threshold_magnitude  # Minimum movement to be considered significant
     CONSISTENCY_THRESHOLD = 0.6  # 60% of movements should be in the same direction for a nod
 
-    moved = {'dx':0,'dy':0}
+    moved = {'dx':0,'dy':0,'dz':0}
 
     # Analyze x and y movements for nodding patterns
-    for axis in ['dx', 'dy']:
+    for axis in ['dx', 'dy', 'dz']:
         # Count movements in both directions
         positive_movements = sum(1 for move in history if move[axis] > THRESHOLD_MAGNITUDE)
         negative_movements = sum(1 for move in history if move[axis] < -THRESHOLD_MAGNITUDE)
