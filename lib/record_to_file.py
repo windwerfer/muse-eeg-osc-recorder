@@ -138,7 +138,7 @@ def process_buffers(data):
 
                     last_received_time = None
 
-                    close_and_zip_files()
+                    close_and_zip_files(data)
 
 
 
