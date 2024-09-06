@@ -76,7 +76,7 @@ def init_conf(data):
     #data['columns']['heart_rate'].extend(["heart_rate_0", "heart_rate_1", "heart_rate_2"])
     data['columns']['heart_rate'].extend(["heart_rate_1"]) # muse only uses heart rate sensor 1, sensor 0 & 2 (infrared and green) are not used, mind monitor does not send the heartrate at all
     data['columns']['acc'].extend(["x", "y", "z"])
-    data['columns']['signal_quality'].extend(["signal_is_good"])
+    data['columns']['signal_quality'].extend(["signal_quality_is_good"])
 
     if data['conf']['add_aux_columns']:
         data['columns']['eeg'].extend(['aux0', 'aux1'])
@@ -96,7 +96,8 @@ def init_conf(data):
     # nod_threshold_magnitude: how sensitive the nodding recognition is.
     # good values are between 0.10 and 0.08 (0.08 beeing more sensitive and 0.10 less so)
     # 0.08 seems best for me (very sensitiv), 0.09 probably good for people who move more like kRob,  1.0 relaxed
-    data['conf']['nod_threshold_magnitude'] = 0.08
+    # 0.07 = 2cm nods recognised - very sensitive but works well
+    data['conf']['nod_threshold_magnitude'] = 0.07
     # how slow do you nodd? each increase in number adds 0.5s to the recognised nod length (20 -> 10s nod is recognised)
     data['conf']['nod_length'] = 20
 
