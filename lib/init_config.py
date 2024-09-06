@@ -76,13 +76,13 @@ def init_conf(data):
     #data['columns']['heart_rate'].extend(["heart_rate_0", "heart_rate_1", "heart_rate_2"])
     data['columns']['heart_rate'].extend(["heart_rate_1"]) # muse only uses heart rate sensor 1, sensor 0 & 2 (infrared and green) are not used, mind monitor does not send the heartrate at all
     data['columns']['acc'].extend(["x", "y", "z"])
-    data['columns']['signal_quality'].extend(["all_signals_are_good"])
+    data['columns']['signal_quality'].extend(["signal_is_good"])
 
     if data['conf']['add_aux_columns']:
         data['columns']['eeg'].extend(['aux0', 'aux1'])
 
     if data['conf']['add_signal_quality_for_each_electrode']:
-        data['columns']['signal_quality'].extend(['signal_quality_TP9', 'signal_quality_AF7', 'signal_quality_AF8', 'signal_quality_TP10'])
+        data['columns']['signal_quality'].extend(['signal_quality_tp9', 'signal_quality_af7', 'signal_quality_af8', 'signal_quality_tp10'])
 
 
 

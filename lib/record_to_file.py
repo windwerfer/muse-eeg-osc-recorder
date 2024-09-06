@@ -120,6 +120,7 @@ def process_buffers(data):
             write_to_file('eeg', data)
 
 
+
             if data['conf']['add_heart_rate_file']:
                 write_to_file('heart_rate', data)
 
@@ -156,6 +157,19 @@ def process_buffers(data):
         time.sleep(10)
 
 
+def count_lines_in_file(filename):
+    try:
+        with open(filename, 'r') as file:
+            # Read all lines and count them
+            line_count = sum(1 for line in file)
+        return line_count
+    except FileNotFoundError:
+        print(f"Sorry, the file {filename} does not exist.")
+        return 0
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 0
+
 def close_and_zip_files(data):
     
 
@@ -167,7 +181,9 @@ def close_and_zip_files(data):
         #sys.stdout.flush()
         
         # recording lenght
-        rec_lenght = int( round( (time.time() - data['stats']['rec_start_time']) / 60, 0) )
+        # rec_lenght = int( round( (time.time() - data['stats']['rec_start_time']) / 60, 0) )
+        lines_in_eeg_csv = count_lines_in_file( f"{data['folder']['out']}/{data['folder']['tmp']}/{data['file']['name']['eeg']}")
+        rec_lenght = int( round( lines_in_eeg_csv / data['conf']['sampling_rate']['eeg'] / 60 ) )
 
         # Create a ZIP file with normal compression
         zip_file_name = f"{data['folder']['tmp']}_{rec_lenght}min.zip"
