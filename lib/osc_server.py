@@ -44,10 +44,10 @@ def handle_eeg_message( buffer_eeg, buffer_signal_quality, signal, conf, address
         sig_data['all_signals_are_good'] = signal['is_good']
 
         if conf['add_signal_quality_for_each_electrode']:
-            sig_data['signal_quality_TP9'] = signal['electrode'][0]
-            sig_data['signal_quality_AF7'] = signal['electrode'][1]
-            sig_data['signal_quality_AF8'] = signal['electrode'][2]
-            sig_data['signal_quality_TP10'] = signal['electrode'][3]
+            sig_data['signal_quality_tp9'] = signal['electrode'][0]
+            sig_data['signal_quality_af7'] = signal['electrode'][1]
+            sig_data['signal_quality_af8'] = signal['electrode'][2]
+            sig_data['signal_quality_tp10'] = signal['electrode'][3]
 
     if conf['only_record_if_signal_is_good'] == True:
         if signal['is_good'] != 1:
