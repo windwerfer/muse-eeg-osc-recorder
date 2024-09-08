@@ -3,17 +3,29 @@ import os
 import sys
 
 from lib.record_to_file import gracefully_end
+from lib.record_to_file import close_and_zip_files
 
 
 def start_input(data):
     # time.sleep(2)
+    user_input = input(" Exit: x (+Enter) | new rec: n | reset nod: n0 \n")  # todo: | note: n | s = stats
+    sys.stdout.flush()
     while True:
-        user_input = input("  --> Exit: x (+Enter)  \n")  # todo: | note: n | s = stats
-        sys.stdout.flush()
+
+        if user_input == '':
+            #pause_stats()
+            #continue_stats()
+            pass
+
+        if user_input == 'n':
+            close_and_zip_files(data)
+
+        if user_input == 'n0':
+            data['stats']['moved_continuous'] = 0 
 
         if user_input == 'x':
             gracefully_end(data)
             os._exit(0)
 
-        sys.stdout.write(f"\rYou typed: {user_input}                      \n")
-        sys.stdout.flush()
+       # sys.stdout.write(f"\rYou typed: {user_input}                      \n")
+       # sys.stdout.flush()
