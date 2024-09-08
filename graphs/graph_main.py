@@ -151,6 +151,51 @@ def load_signal_quality(filename, sample_rate=256, load_from=0, load_until=None,
 
     return signal_quality_df
 
+def signal_quality_statistics(signal_quality_data):
+    # Initialize results dictionary
+    result = {}
+    electrodes = ['tp9', 'af7', 'af8', 'tp10']
+
+    for electrode in electrodes:
+        # Extract signal quality for the electrode
+        signal_quality = signal_quality_data[f'signal_quality_{electrode}']
+
+        # Count non-good signals
+        non_good_signals = (signal_quality != 1).sum()
+
+        # Detect blocks of non-good signals
+        blocks = (signal_quality != 1).astype(int).groupby(signal_quality.ne(signal_quality.shift()).cumsum()).sum()
+        non_good_blocks = blocks[blocks > 0]
+        total_non_good_blocks = len(non_good_blocks)
+        average_block_length = non_good_blocks.mean() if total_non_good_blocks > 0 else 0
+
+        # Calculate percentages
+        total_signals = len(signal_quality)
+        good_percentage = 100 * (total_signals - non_good_signals) / total_signals
+        non_good_percentage = 100 - good_percentage
+
+        # Store results
+        result[electrode] = {
+            'Non-Good Signals': non_good_signals,
+            'Average Block Length': average_block_length,
+            'Good Percentage': good_percentage,
+            'Non-Good Percentage': non_good_percentage
+        }
+
+    # Convert results to DataFrame and transpose for better representation
+    stats_df = pd.DataFrame(result).T
+
+    # Set pandas display options to show all columns
+    pd.set_option('display.max_columns', None)
+
+    # Set display width to a larger value
+    pd.set_option('display.width', 1000)
+
+    # rotate 90 degrees
+    stats_df_flip = stats_df.transpose()
+
+    # Transpose the DataFrame to rotate it by 90 degrees
+    return stats_df
 
 def do_ica(eeg_data,sample_rate=256):
     # Example data setup (replace this with your actual data loading)
@@ -199,14 +244,17 @@ def main():
 
 if __name__ == "__main__":
 
-
-    eeg_data = load_data('../out_eeg/tho_eeglab_2024.09.02_19.07.zip', load_from=2000, load_until=2400) #, col_separator='\t')
+    #todo: warning if eeg_data is empty (file shorter than load_from)
+    eeg_data = load_data('../out_eeg/tho_eeglab_2024.09.04_22.02.zip', load_from=0, load_until=60) #, col_separator='\t')
     print('eeg loaded')
 
-    signal_quality_data = load_data('../out_eeg/tho_eeglab_2024.09.02_19.07.zip', load_from=2000, load_until=2400) #, col_separator='\t')
+    signal_quality_data = load_signal_quality('../out_eeg/tho_eeglab_2024.09.04_22.02.zip', load_from=0, load_until=60) #, col_separator='\t')
     print('signal quality loaded')
 
-    clean_eeg_data = do_ica(eeg_data)
+    signal_quality_statis = signal_quality_statistics(signal_quality_data)
+    print(signal_quality_statis)
+
+    #clean_eeg_data = do_ica(eeg_data)
     print('ica done')
 
 
