@@ -10,44 +10,43 @@ from lib.record_to_file import close_and_zip_files
 def start_input(data):
 
     # user_input = input(" Exit: x (+Enter) | new rec: n | reset nod: n0 \n")  # todo: | note: n | s = stats
-    print(" \n to interact with the script press ENTER (sometimes needs 2 presses :-) \n")
+    print(" \n to interact with the script press the Command + ENTER (sometimes needs 2 presses :-)")
+    print(" Commands: x = Exit | r = rec to file | n0 = reset nod \n")
 
-    time.sleep(3)
+    time.sleep(3)       # needs to wait shortly (pycharm sends the input to record_to_file.py thread otherwise..)
 
     while True:
 
-        start_input = input("\r ")
-        sys.stdout.flush()
 
-        if start_input == '':
-            data['stats']['pause'] = True
-            user_input = input("(programm keeps running in the background) \n  options:  Exit: x (+Enter) | new rec: n | reset nod: n0 \n")
 
-            if user_input == 'n0':
-                data['stats']['moved_continuous'] = 0
-                data['stats']['pause'] = False
+        user_input = input("\r ")
+       # sys.stdout.flush()      # is that needed??
 
-            if user_input == 'x':
-                gracefully_end(data)
-                os._exit(0)
+        if user_input == 'n0':
+            data['stats']['moved_continuous'] = 0
 
-            if user_input == 'n':
+
+        if user_input == 'x':
+            gracefully_end(data)
+            os._exit(0)
+
+        if user_input == 'r':
+            if data['folder']['tmp'] == '':
+                print('nothing is recorded right now. returning to normal programm')
+            else:
                 close_and_zip_files(data)
-                data['stats']['pause'] = False
 
-            if user_input == '':
-                pass
 
-        #
-        # if user_input == 'n':
-        #     close_and_zip_files(data)
-        #
-        # if user_input == 'n0':
-        #     data['stats']['moved_continuous'] = 0
-        #
-        # if user_input == 'x':
-        #     gracefully_end(data)
-        #     os._exit(0)
+        if user_input == 'n':
+            data['stats']['pause'] = True
+            user_input = input(" enter the note to save and press Enter:")
+            data['stats']['pause'] = False
+
+        if user_input == '':
+            print('no command entered.')
+
+
+
 
        # sys.stdout.write(f"\rYou typed: {user_input}                      \n")
        # sys.stdout.flush()
