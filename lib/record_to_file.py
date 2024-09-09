@@ -23,6 +23,7 @@ def open_file(name, data, csv_delimiter=','):
 
 
 def write_to_file(name, data):
+    global last_timestamp
 
     current_timestamp = 0
 
@@ -66,6 +67,7 @@ def create_folder(f):
 
 # Function to write buffered data to a file every 10 seconds
 def process_buffers(data):
+    global last_timestamp
 
     time.sleep(1)
 
@@ -84,9 +86,9 @@ def process_buffers(data):
         # print(status_isGood)
         # print(status_electrodeFit)
 
-        if not data['buffer']['eeg'].empty():
+        if not data['buffer']['eeg'].empty() and data['file']['packing'] == False:
 
-            if last_received_time is None:
+            if data['folder']['tmp'] == '':         # create new tmp folder and eeg files
                 current_timestamp_str = time.strftime("%Y.%m.%d_%H.%M")
                 data['folder']['tmp'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}"
                 data['file']['name']['eeg'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_eeg.csv"
@@ -115,6 +117,9 @@ def process_buffers(data):
                 sys.stdout.write(f"\r {data['folder']['tmp']} created.                     \n")
                 sys.stdout.flush()
 
+                last_timestamp = {'eeg': 0, 'heart_rate': 0, 'acc': 0, 'signal_quality': 0}
+
+
 
 
             write_to_file('eeg', data)
@@ -137,14 +142,13 @@ def process_buffers(data):
             if last_received_time is not None and last_received_time + data['conf']['wait_until_starting_new_recording'] < now:
                 try:
 
-                    last_timestamp['eeg'] = 0
-                    last_timestamp['heart_rate'] = 0
-                    last_timestamp['acc'] = 0
-                    last_timestamp['signal_quality'] = 0
 
-                    last_received_time = None
 
                     close_and_zip_files(data)
+
+                    # todo: check last_timestamp works + stuff all ok??
+                    # needs data[file][packing] = True (set when this method starts, and will pause all recording until finished)
+                    # data[file][eeg] = '' will create a new tmp folder / eeg files and reset the last_timestamp & last_received_time on creation
 
 
 
@@ -171,7 +175,8 @@ def count_lines_in_file(filename):
         return 0
 
 def close_and_zip_files(data):
-    
+
+    data['file']['packing'] = True      # block creation / writing of new eeg files (will interfere with packing if packing is slow)
 
     try:
         for f in data['file']['open']:
@@ -226,6 +231,8 @@ def close_and_zip_files(data):
 
     except Exception as e:
         print(' Warning: recoded file not found.. \n', e)
+
+    data['file']['packing'] = False
 
 
 def gracefully_end(data):

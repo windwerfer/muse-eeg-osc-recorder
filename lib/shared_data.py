@@ -12,7 +12,7 @@ class Shared_Data:
             'stats': {'refresh_interval': 1, 'cpu': 0, 'cpu_one_core': 0.0, 'nr_cpu_cores': 1, 'battery': None,
                 'moved': '', 'moved_sum': 0, 'moved_continuous': 0, 'counter': '-',  'recording': 0,
                 'rec_start_time':999999999999, 'pause': False },
-            'file': {'name': {}, 'open': {}, 'csv_writer': {}},
+            'file': {'name': {}, 'open': {}, 'csv_writer': {}, 'packing': False},
             'folder': {'out': "out_eeg", 'tmp': ''}
         }
         self._lock = threading.RLock()

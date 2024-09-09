@@ -1,23 +1,27 @@
 # Collect events until released
 import os
 import sys
+import time
 
 from lib.record_to_file import gracefully_end
 from lib.record_to_file import close_and_zip_files
 
 
 def start_input(data):
-    # time.sleep(2)
+
     # user_input = input(" Exit: x (+Enter) | new rec: n | reset nod: n0 \n")  # todo: | note: n | s = stats
+    print(" \n to interact with the script press ENTER (sometimes needs 2 presses :-) \n")
+
+    time.sleep(3)
 
     while True:
 
-        start_input = input(" to interact with the script press ENTER \n")  # todo: | note: n | s = stats
+        start_input = input("\r ")
         sys.stdout.flush()
 
         if start_input == '':
             data['stats']['pause'] = True
-            user_input = input(" options:  Exit: x (+Enter) | new rec: n | reset nod: n0 \n")
+            user_input = input("(programm keeps running in the background) \n  options:  Exit: x (+Enter) | new rec: n | reset nod: n0 \n")
 
             if user_input == 'n0':
                 data['stats']['moved_continuous'] = 0
@@ -30,6 +34,9 @@ def start_input(data):
             if user_input == 'n':
                 close_and_zip_files(data)
                 data['stats']['pause'] = False
+
+            if user_input == '':
+                pass
 
         #
         # if user_input == 'n':
