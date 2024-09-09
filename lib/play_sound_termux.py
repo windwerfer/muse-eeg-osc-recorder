@@ -2,8 +2,6 @@ import os
 import subprocess
 import time
 
-# pkg install pulseaudio mpv socat
-
 def change_volume(volume, ipc_path):
     """
     Change the volume of the audio playback using mpv's IPC server.
@@ -30,45 +28,31 @@ def change_volume(volume, ipc_path):
     except subprocess.CalledProcessError as e:
         print(f"Failed to change volume: {e}")
 
-def play_sound(filename, volume=50, background=False):
+def play_sound(filename, volume=50):
     """
     Play sound using mpv with the option to run in the background.
 
     Parameters:
     - filename (str): The path to the audio file to play.
-    - background (bool): If True, run mpv as a background process.
     """
     ipc_path = os.path.expanduser("~/mpv_socket")
 
     # Command to play the sound using mpv with an IPC server
-    cmd = f"mpv --no-video --volume={volume} --input-ipc-server={ipc_path} \"{filename}\""
+    cmd = f"mpv --no-video --volume={volume} --input-ipc-server={ipc_path} --idle=no \"{filename}\""
 
     # Start mpv in a subprocess
-    if background:
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    else:
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        try:
-            while process.poll() is None:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("\nStopping playback...")
-            process.terminate()
-        finally:
-            # Cleanup the IPC socket
-            if os.path.exists(ipc_path):
-                os.remove(ipc_path)
-
+    # Return the IPC path for further interactions
     return ipc_path
 
 # Main execution
 if __name__ == "__main__":
 
-    mp3_file = "audio/boreal_owl.mp3"
+    mp3_file = "../audio/boreal_owl.mp3"
 
     if os.path.exists(mp3_file):
-        ipc_path = play_sound(mp3_file, background=True)
+        ipc_path = play_sound(mp3_file)
         time.sleep(4)
         change_volume(100, ipc_path)
         time.sleep(10)
