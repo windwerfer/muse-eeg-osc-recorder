@@ -134,7 +134,7 @@ def process_buffers(data):
 
         # zip file after 10min inactivity and remove plain csv
         else:
-            if last_received_time is not None and last_received_time + 5 * 60 < now:
+            if last_received_time is not None and last_received_time + data['conf']['wait_until_starting_new_recording'] < now:
                 try:
 
                     last_timestamp['eeg'] = 0

@@ -101,4 +101,7 @@ def init_conf(data):
     # how slow do you nodd? each increase in number adds 0.5s to the recognised nod length (20 -> 10s nod is recognised)
     data['conf']['nod_length'] = 20
 
+    # the time the script waits while no osc data arrives, before assuming its a new recording session and starts a new file
+    data['conf']['wait_until_starting_new_recording'] = 15
+
 

@@ -93,8 +93,9 @@ def start_stats(data):
 
 
         # cpu usage, received osc streams, good fit
-        sys.stdout.write(f"\r{data['stats']['counter']} {rec}{cpu}{mem}{acc}{si}{nod} ")
-        sys.stdout.flush()
+        if not data['stats']['pause']:
+            sys.stdout.write(f"\r{data['stats']['counter']} {rec}{cpu}{mem}{acc}{si}{nod} ")
+            sys.stdout.flush()
 
         if data['stats']['counter'] == '-':
             data['stats']['counter'] = '+'

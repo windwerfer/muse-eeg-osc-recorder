@@ -22,12 +22,6 @@ def main():
 
     data = Shared_Data()
     init_conf(data)
-    # data['buffer'] = {'eeg': [], 'heart_rate':[], 'acc': [], 'signal_quality': []}
-    # data['feedback'] = {'eeg': [], 'heart_rate': [], 'acc': [], 'signal_quality': []}
-    # data['columns'] = {'eeg': [], 'heart_rate': [], 'acc': [], 'signal_quality': []}
-    # data['signal'] = {'electrode': [4, 4, 4, 4], 'is_good': 0}
-    # data['folder'] = {'out': "out_eeg", 'tmp': ''}
-    # data['file'] = {'name': {}, 'open': {}, 'csv_writer': {}}
 
     stats_thread = threading.Thread(target=start_stats, args=(data,), daemon=True)
     stats_thread.start()
