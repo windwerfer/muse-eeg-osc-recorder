@@ -141,6 +141,45 @@ def plot_eeg_bands(eeg_data, fs=256):
     plt.tight_layout()
     plt.show()
 
+
+def do_ica(eeg_data,sample_rate=256):
+    # Example data setup (replace this with your actual data loading)
+    eeg_data_array = eeg_data.drop('time_seconds', axis=1).values  # Assuming 'time_seconds' is not part of the channels
+
+    # Standardize the data (important for ICA)
+    eeg_data_standardized = (eeg_data_array - np.mean(eeg_data_array, axis=0)) / np.std(eeg_data_array, axis=0)
+
+    # Number of components to extract. Often this is set to the number of channels, but can be less for dimensionality reduction
+    n_components = eeg_data_standardized.shape[1]  # Number of EEG channels
+
+    # Create and fit ICA model
+    ica = FastICA(n_components=n_components, random_state=42)  # You can choose different ICA algorithms or parameters
+    components = ica.fit_transform(eeg_data_standardized.T)  # Transpose because FastICA expects components as rows
+
+    # components now holds the independent components in its rows
+    # To get back to the "EEG space", you can use:
+    mixing_matrix = ica.mixing_
+    reconstructed_signals = np.dot(components, mixing_matrix.T) + ica.mean_.T
+
+    # Plotting example for one component to visualize
+    # plt.figure()
+    # plt.plot(components[0, :])  # Plotting the first independent component
+    # plt.title('First Independent Component')
+    # plt.show()
+
+    # If you want to remove a component (e.g., an artifact), you would zero out its row in 'components'
+    # then reconstruct without it. Here's a simple example where we remove the first component:
+    components_cleaned = components.copy()
+    components_cleaned[0, :] = 0  # Zero out the first component, assuming it's an artifact
+
+    # Reconstruct the signal without the first component
+    cleaned_eeg = np.dot(components_cleaned, mixing_matrix.T) + ica.mean_.T
+
+
+
+    return cleaned_eeg
+
+
 if __name__ == "__main__":
 
 

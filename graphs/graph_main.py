@@ -151,9 +151,25 @@ def load_signal_quality(filename, sample_rate=256, load_from=0, load_until=None,
 
     return signal_quality_df
 
-def signal_quality_statistics(signal_quality_data):
-    # Initialize results dictionary
+
+def signal_quality_statistics(signal_quality_data, ignored_electrodes=None):
+    """
+    Calculate statistics for signal quality data, considering ignored electrodes.
+
+    Parameters:
+    - signal_quality_data: DataFrame, the signal quality data.
+    - ignored_electrodes: list of str, electrodes to ignore in the analysis.
+
+    Returns:
+    - stats_df: DataFrame, statistics for non-ignored electrodes.
+    - stats_df_bad_electrodes: DataFrame, statistics for ignored electrodes.
+    """
+    if ignored_electrodes is None:
+        ignored_electrodes = []
+
+    # Initialize results dictionaries
     result = {}
+    bad_result = {}
     electrodes = ['tp9', 'af7', 'af8', 'tp10']
 
     for electrode in electrodes:
@@ -174,65 +190,111 @@ def signal_quality_statistics(signal_quality_data):
         good_percentage = 100 * (total_signals - non_good_signals) / total_signals
         non_good_percentage = 100 - good_percentage
 
-        # Store results
-        result[electrode] = {
-            'Non-Good Signals': non_good_signals,
-            'Average Block Length': average_block_length,
-            'Good Percentage': good_percentage,
-            'Non-Good Percentage': non_good_percentage
-        }
+        # Store results in the appropriate dictionary
+        if electrode in ignored_electrodes:
+            bad_result[electrode] = {
+                'Non-Good Signals': non_good_signals,
+                'Average Block Length': average_block_length,
+                'Good Percentage': good_percentage,
+                'Non-Good Percentage': non_good_percentage
+            }
+        else:
+            result[electrode] = {
+                'Non-Good Signals': non_good_signals,
+                'Average Block Length': average_block_length,
+                'Good Percentage': good_percentage,
+                'Non-Good Percentage': non_good_percentage
+            }
 
-    # Convert results to DataFrame and transpose for better representation
+    # Convert results to DataFrames and transpose for better representation
     stats_df = pd.DataFrame(result).T
+    stats_df_bad_electrodes = pd.DataFrame(bad_result).T
 
     # Set pandas display options to show all columns
     pd.set_option('display.max_columns', None)
-
-    # Set display width to a larger value
     pd.set_option('display.width', 1000)
 
-    # rotate 90 degrees
-    stats_df_flip = stats_df.transpose()
-
-    # Transpose the DataFrame to rotate it by 90 degrees
-    return stats_df
-
-def do_ica(eeg_data,sample_rate=256):
-    # Example data setup (replace this with your actual data loading)
-    eeg_data_array = eeg_data.drop('time_seconds', axis=1).values  # Assuming 'time_seconds' is not part of the channels
-
-    # Standardize the data (important for ICA)
-    eeg_data_standardized = (eeg_data_array - np.mean(eeg_data_array, axis=0)) / np.std(eeg_data_array, axis=0)
-
-    # Number of components to extract. Often this is set to the number of channels, but can be less for dimensionality reduction
-    n_components = eeg_data_standardized.shape[1]  # Number of EEG channels
-
-    # Create and fit ICA model
-    ica = FastICA(n_components=n_components, random_state=42)  # You can choose different ICA algorithms or parameters
-    components = ica.fit_transform(eeg_data_standardized.T)  # Transpose because FastICA expects components as rows
-
-    # components now holds the independent components in its rows
-    # To get back to the "EEG space", you can use:
-    mixing_matrix = ica.mixing_
-    reconstructed_signals = np.dot(components, mixing_matrix.T) + ica.mean_.T
-
-    # Plotting example for one component to visualize
-    # plt.figure()
-    # plt.plot(components[0, :])  # Plotting the first independent component
-    # plt.title('First Independent Component')
-    # plt.show()
-
-    # If you want to remove a component (e.g., an artifact), you would zero out its row in 'components'
-    # then reconstruct without it. Here's a simple example where we remove the first component:
-    components_cleaned = components.copy()
-    components_cleaned[0, :] = 0  # Zero out the first component, assuming it's an artifact
-
-    # Reconstruct the signal without the first component
-    cleaned_eeg = np.dot(components_cleaned, mixing_matrix.T) + ica.mean_.T
+    return stats_df, stats_df_bad_electrodes
 
 
 
-    return cleaned_eeg
+def identify_bad_electrodes(signal_quality_data, threshold=90):
+    """
+    Identify electrodes with more than a specified percentage of non-good signals.
+
+    Parameters:
+    - signal_quality_data: DataFrame, the signal quality data.
+    - threshold: float, the percentage threshold above which an electrode is considered bad.
+
+    Returns:
+    - ignored_electrodes: list of str, names of electrodes to ignore.
+    """
+    electrodes = ['tp9', 'af7', 'af8', 'tp10']
+    ignored_electrodes = []
+
+    for electrode in electrodes:
+        signal_quality = signal_quality_data[f'signal_quality_{electrode}']
+        non_good_percentage = (signal_quality > 1).mean() * 100
+
+        if non_good_percentage > threshold:
+            ignored_electrodes.append(electrode)
+
+    return ignored_electrodes
+
+def remove_non_connected_electrode_parts(eeg_data, signal_quality_data, ignored_electrodes=None, truncate_only_beginning_and_end=True, sample_frequency_data=256, sample_frequency_signal_quality=256):
+    """
+    Remove parts of the EEG data where the electrodes were not connected and return both EEG and signal quality data.
+
+    Parameters:
+    - eeg_data: DataFrame, the EEG data.
+    - signal_quality_data: DataFrame, the signal quality data.
+    - ignored_electrodes: list of str, electrodes to ignore in the analysis.
+    - truncate_only_beginning_and_end: bool, if True, only truncate non-connected parts at the beginning and end.
+    - sample_frequency_data: int, the sampling frequency of the EEG data.
+    - sample_frequency_signal_quality: int, the sampling frequency of the signal quality data.
+
+    Returns:
+    - eeg_data_filtered: DataFrame, the EEG data with non-connected parts removed.
+    - signal_quality_data_filtered: DataFrame, the signal quality data corresponding to the filtered EEG data.
+    """
+    if ignored_electrodes is None:
+        ignored_electrodes = []
+
+    # Resample signal quality data if frequencies do not match
+    if sample_frequency_data != sample_frequency_signal_quality:
+        signal_quality_data = signal_quality_data.set_index('time_seconds').resample(f'{1/sample_frequency_data}S').ffill().reset_index()
+
+    # Merge EEG data with signal quality data
+    merged_data = pd.merge_asof(eeg_data.sort_values('time_seconds'),
+                                signal_quality_data.sort_values('time_seconds'),
+                                on='time_seconds',
+                                direction='nearest')
+
+    # Identify non-connected parts for each electrode
+    electrodes = [electrode for electrode in ['tp9', 'af7', 'af8', 'tp10'] if electrode not in ignored_electrodes]
+    non_connected = merged_data[[f'signal_quality_{electrode}' for electrode in electrodes]].gt(1).any(axis=1)
+
+    if truncate_only_beginning_and_end:
+        # Find the first and last good signal
+        first_good_index = non_connected.idxmin()
+        last_good_index = non_connected[::-1].idxmin() + 1
+
+        # Ensure valid indices
+        if first_good_index >= last_good_index:
+            return pd.DataFrame(columns=eeg_data.columns), pd.DataFrame(columns=signal_quality_data.columns)
+
+        # Truncate data
+        eeg_data_filtered = merged_data.iloc[first_good_index:last_good_index].copy()
+    else:
+        # Remove all non-connected parts
+        eeg_data_filtered = merged_data[~non_connected].copy()
+
+    # Separate EEG data and signal quality data
+    signal_quality_columns = [col for col in merged_data.columns if 'signal_quality' in col]
+    signal_quality_data_filtered = eeg_data_filtered[signal_quality_columns + ['time_seconds']].copy()
+    eeg_data_filtered.drop(columns=signal_quality_columns, inplace=True)
+
+    return eeg_data_filtered, signal_quality_data_filtered
 
 
 
@@ -251,12 +313,16 @@ if __name__ == "__main__":
     signal_quality_data = load_signal_quality('../out_eeg/tho_eeglab_2024.09.04_22.02.zip', load_from=0, load_until=60) #, col_separator='\t')
     print('signal quality loaded')
 
-    signal_quality_statis = signal_quality_statistics(signal_quality_data)
-    print(signal_quality_statis)
+    # Identify bad electrodes
+    ignored_electrodes = identify_bad_electrodes(signal_quality_data)
 
-    #clean_eeg_data = do_ica(eeg_data)
-    print('ica done')
+    eeg_data_trunc, signal_quality_data_trunc  = remove_non_connected_electrode_parts(eeg_data, signal_quality_data, ignored_electrodes)
+
+    statis_good_el, statis_bad_el = signal_quality_statistics(signal_quality_data, ignored_electrodes)
+    signal_quality_statis_trunc = signal_quality_statistics(signal_quality_data_trunc)
+
+    print(statis_good_el)
+    print(statis_bad_el)
 
 
 
-    main()
