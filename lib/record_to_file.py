@@ -212,6 +212,9 @@ def close_and_zip_files(data):
             # Add the string content directly to the zip file
             ch_loc = "TP9   -80.0   -50.0   0.0\nAF7   -70.0   70.0   0.0\nAF8    70.0   70.0   0.0\nTP10   80.0   -50.0   0.0"
             zipf.writestr('channel_locations_for_eeglab.sfp', ch_loc)
+            if len(data['folder']['note']) > 0:
+                notes = "\n\n\n---------\n\n".join(data['folder']['note'])
+                zipf.writestr('notes.txt', notes)
 
         # Delete the original files
         for f in ff:
