@@ -1,8 +1,9 @@
+
 import sys
 import os
 
 if os.name == 'nt':  # Windows
-    import keyboard
+    import msvcrt
 else:  # Unix-like systems
     import tty
     import termios
@@ -14,9 +15,8 @@ def get_key_pressed():
         # On Windows, we'll simulate key press detection by checking if any key is pressed
         # This isn't as straightforward as on Unix-like systems because keyboard.is_pressed()
         # requires specifying a key. However, we can use a workaround:
-        event = keyboard.read_event(suppress=True)
-        if event.event_type == keyboard.KEY_DOWN:
-            return event.name  # Returns the name of the key pressed
+        if msvcrt.kbhit():  # Check if a key press is available
+            return msvcrt.getch().decode('utf-8')  # Return the key pressed
         return None
 
     else:  # Unix-like systems

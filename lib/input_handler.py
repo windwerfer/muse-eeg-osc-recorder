@@ -6,6 +6,7 @@ import time
 from lib.input_get_key_pressed import get_key_pressed
 from lib.record_to_file import gracefully_end
 from lib.record_to_file import close_and_zip_files
+from lib.statistics import is_run_in_pycharm
 
 
 def start_input(data):
@@ -18,8 +19,10 @@ def start_input(data):
 
     while True:
 
-        #user_input = input("\r ")
-        user_input = get_key_pressed()      # this method works in win + linux + termux (termux is the complicated one)
+        if is_run_in_pycharm():
+            user_input = input("\r ")           # this method works better in pycharm, the get_key_pressed() will receive ALL key events (the whole ide+windows is blocked)
+        else:
+            user_input = get_key_pressed()      # this method works in win + linux + termux (termux is the complicated one)
 
 
         if user_input == '0':
