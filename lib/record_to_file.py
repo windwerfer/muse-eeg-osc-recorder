@@ -203,10 +203,15 @@ def close_and_zip_files(data):
         with zipfile.ZipFile(f"{data['folder']['out']}/{zip_file_name}", 'w', zipfile.ZIP_DEFLATED) as zipf:
             # pack all created files that are > 0 Bytes
             for f in data['file']['name']:
-                ff.append(f"{data['folder']['out']}/{data['folder']['tmp']}/{data['file']['name'][f]}")
-                #print(ff[-1])
-                if os.path.getsize(ff[-1]) > 0:
-                    zipf.write(ff[-1], arcname=os.path.basename(ff[-1]))
+                file_name = f"{data['folder']['out']}/{data['folder']['tmp']}/{data['file']['name'][f]}"
+                ff.append(file_name)
+                #print(file_name)
+                if os.path.getsize(file_name) > 0:
+                    zipf.write(file_name, arcname=os.path.basename(file_name))
+
+            # Add the string content directly to the zip file
+            ch_loc = "TP9   -80.0   -50.0   0.0\nAF7   -70.0   70.0   0.0\nAF8    70.0   70.0   0.0\nTP10   80.0   -50.0   0.0"
+            zipf.writestr('channel_locations_for_eeglab.sfp', ch_loc)
 
         # Delete the original files
         for f in ff:
