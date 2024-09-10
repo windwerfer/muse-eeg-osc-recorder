@@ -1,6 +1,6 @@
-
 import sys
 import os
+import time
 
 if os.name == 'nt':  # Windows
     import msvcrt
@@ -12,13 +12,9 @@ else:  # Unix-like systems
 
 def get_key_pressed():
     if os.name == 'nt':  # Windows
-        # On Windows, we'll simulate key press detection by checking if any key is pressed
-        # This isn't as straightforward as on Unix-like systems because keyboard.is_pressed()
-        # requires specifying a key. However, we can use a workaround:
-        if msvcrt.kbhit():  # Check if a key press is available
-            return msvcrt.getch().decode('utf-8')  # Return the key pressed
+        if msvcrt.kbhit():
+            return msvcrt.getch().decode('utf-8')
         return None
-
     else:  # Unix-like systems
         def getch():
             fd = sys.stdin.fileno()
@@ -38,22 +34,23 @@ def get_key_pressed():
 
         try:
             char = getch()
-            if char:  # If any key was pressed
+            if char:
                 return char
-        except IOError:  # No input available
+        except IOError:
             pass
 
         return None
 
 
-# Example usage:
+# Example usage with CPU usage optimization:
 if __name__ == "__main__":
     print("Press any key to see what you pressed, or 'x' to exit.")
     while True:
         key = get_key_pressed()
         if key:
-            if key == 'x':
+            if key.lower() == 'x':
                 print("You pressed 'x'. Exiting.")
                 break
             else:
                 print(f"You pressed: {key}")
+        time.sleep(0.1)  # Add a small delay to reduce CPU usage

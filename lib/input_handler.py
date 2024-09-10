@@ -13,7 +13,7 @@ def start_input(data):
 
     # user_input = input(" Exit: x (+Enter) | new rec: n | reset nod: n0 \n")
     # print(" \n to interact with the script press the Command + ENTER (sometimes needs 2 presses :-)")
-    print(" Commands: x = Exit | r = rec to file | 0 = reset ∞nod \n")
+    print("\n Commands: x = Exit | r = rec new file | 0 = reset ∞nod \n")
 
     time.sleep(3)       # needs to wait shortly (pycharm sends the input to record_to_file.py thread otherwise..)
 
@@ -47,6 +47,8 @@ def start_input(data):
             data['folder']['note'].append( f"{note}" )
 
             data['stats']['pause'] = False
+
+        time.sleep(0.3)  # Add a small delay to reduce CPU usage
 
         # if user_input == '':
         #     print('no command entered.')
