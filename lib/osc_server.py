@@ -118,15 +118,17 @@ def handle_isGoodMM_message( signal, address, *args):
     # thread save variable assignment (locked)
     signal['electrode'] = el
 
-    sum = 0
-    for a in el:
-        sum += a
-    if sum == 4:
-        # thread save variable assignment (locked)
-        signal['is_good'] = 1
-    else:
-        # thread save variable assignment (locked)
-        signal['is_good'] = 0
+    signal['is_good'] = None    # the muse app seems to have an ica built in (signal['is_good']) but mindmonitor does not, so I set it to 8
+
+    # sum = 0
+    # for a in el:
+    #     sum += a
+    # if sum == 4:
+    #     # thread save variable assignment (locked)
+    #     signal['is_good'] = 1
+    # else:
+    #     # thread save variable assignment (locked)
+    #     signal['is_good'] = 0
 
 
 def osc_start(data):
