@@ -19,7 +19,7 @@ def start_input(data):
 
 
 
-        user_input = input("\r ")
+        user_input = input("\r ").encode('utf-8').decode('utf-8', errors='ignore')
        # sys.stdout.flush()      # is that needed??
 
         if user_input == 'n0':
@@ -28,18 +28,21 @@ def start_input(data):
 
         if user_input == 'x':
             gracefully_end(data)
-            os._exit(0)
+
 
         if user_input == 'r':
             if data['folder']['tmp'] == '':
                 print('nothing is recorded right now. returning to normal programm')
             else:
+                # print('not yet working.')
                 close_and_zip_files(data)
 
 
         if user_input == 'n':
             data['stats']['pause'] = True
-            user_input = input(" enter the note to save and press Enter:")
+            note = input(" enter the note to save and press Enter:")
+            data['folder']['note'].append( f"{note}" )
+
             data['stats']['pause'] = False
 
         if user_input == '':

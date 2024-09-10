@@ -85,75 +85,69 @@ def process_buffers(data):
         now = time.time()
         # print(status_isGood)
         # print(status_electrodeFit)
+        if not data['file']['packing']:
+            if not data['buffer']['eeg'].empty():
 
-        if not data['buffer']['eeg'].empty() and data['file']['packing'] == False:
+                if data['folder']['tmp'] == '':         # create new tmp folder and eeg files
+                    current_timestamp_str = time.strftime("%Y.%m.%d_%H.%M")
+                    data['folder']['tmp'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}"
+                    data['file']['name']['eeg'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_eeg.csv"
+                    data['file']['name']['heart_rate'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_heart_rate.csv"
+                    data['file']['name']['acc'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_accelerator.csv"
+                    data['file']['name']['signal_quality'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_signal_quality.csv"
+                    create_folder(data['folder']['out'])
+                    create_folder(f"{data['folder']['out']}/{data['folder']['tmp']}")
 
-            if data['folder']['tmp'] == '':         # create new tmp folder and eeg files
-                current_timestamp_str = time.strftime("%Y.%m.%d_%H.%M")
-                data['folder']['tmp'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}"
-                data['file']['name']['eeg'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_eeg.csv"
-                data['file']['name']['heart_rate'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_heart_rate.csv"
-                data['file']['name']['acc'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_accelerator.csv"
-                data['file']['name']['signal_quality'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_signal_quality.csv"
-                create_folder(data['folder']['out'])
-                create_folder(f"{data['folder']['out']}/{data['folder']['tmp']}")
+                    open_file('eeg', data, csv_delimiter=csv_delimiter)
 
-                open_file('eeg', data, csv_delimiter=csv_delimiter)
+                    if data['conf']['add_heart_rate_file']:
+                        open_file('heart_rate', data, csv_delimiter=csv_delimiter)
+
+                    if data['conf']['add_acc_file']:
+                        open_file('acc', data, csv_delimiter=csv_delimiter)
+
+                    if data['conf']['add_signal_quality_file']:
+                        open_file('signal_quality', data, csv_delimiter=csv_delimiter)
+
+
+                    data['stats']['rec_start_time'] = time.time()
+
+                    # print('new file created:')
+                    # print(f" {data['folder']['tmp']} created")
+                    sys.stdout.write(f"\r {data['folder']['tmp']} created.                     \n")
+                    sys.stdout.flush()
+
+                    last_timestamp = {'eeg': 0, 'heart_rate': 0, 'acc': 0, 'signal_quality': 0}
+
+
+
+
+                write_to_file('eeg', data)
+
+
 
                 if data['conf']['add_heart_rate_file']:
-                    open_file('heart_rate', data, csv_delimiter=csv_delimiter)
+                    write_to_file('heart_rate', data)
 
                 if data['conf']['add_acc_file']:
-                    open_file('acc', data, csv_delimiter=csv_delimiter)
+                    write_to_file('acc', data)
 
                 if data['conf']['add_signal_quality_file']:
-                    open_file('signal_quality', data, csv_delimiter=csv_delimiter)
+                    write_to_file('signal_quality', data)
+
+                last_received_time = time.time()
+
+            # zip file after 'wait_until_starting_new_recording' seconds of inactivity and remove plain csv
+            # only do so if there is a data['folder']['tmp'] created
+            else:
+                if data['folder']['tmp'] != '' and last_received_time + data['conf']['wait_until_starting_new_recording'] < now:
+                    try:
+
+                        close_and_zip_files(data)
 
 
-                data['stats']['rec_start_time'] = time.time()
-
-                # print('new file created:')
-                # print(f" {data['folder']['tmp']} created")
-                sys.stdout.write(f"\r {data['folder']['tmp']} created.                     \n")
-                sys.stdout.flush()
-
-                last_timestamp = {'eeg': 0, 'heart_rate': 0, 'acc': 0, 'signal_quality': 0}
-
-
-
-
-            write_to_file('eeg', data)
-
-
-
-            if data['conf']['add_heart_rate_file']:
-                write_to_file('heart_rate', data)
-
-            if data['conf']['add_acc_file']:
-                write_to_file('acc', data)
-
-            if data['conf']['add_signal_quality_file']:
-                write_to_file('signal_quality', data)
-
-            last_received_time = time.time()
-
-        # zip file after 10min inactivity and remove plain csv
-        else:
-            if last_received_time is not None and last_received_time + data['conf']['wait_until_starting_new_recording'] < now:
-                try:
-
-
-
-                    close_and_zip_files(data)
-
-                    # todo: check last_timestamp works + stuff all ok??
-                    # needs data[file][packing] = True (set when this method starts, and will pause all recording until finished)
-                    # data[file][eeg] = '' will create a new tmp folder / eeg files and reset the last_timestamp & last_received_time on creation
-
-
-
-                except Exception as e:
-                    print(' Warning: recoded file not found.. ')
+                    except Exception as e:
+                        print(' Warning: recoded file not found.. ')
 
 
 
@@ -175,6 +169,19 @@ def count_lines_in_file(filename):
         return 0
 
 def close_and_zip_files(data):
+
+    # if another function already packs the files, wait until it is finished and then return
+    if data['file']['packing']:
+        print('please wait shortly. packing eeg data (1h of eeg data takes about half a minute to pack)..')
+        while True:
+            if not data['file']['packing']:
+                break
+            time.sleep(1)
+        return False
+
+    # only continue if there are files to pack
+    if data['folder']['tmp'] == '':
+        return False
 
     data['file']['packing'] = True      # block creation / writing of new eeg files (will interfere with packing if packing is slow)
 
@@ -229,13 +236,24 @@ def close_and_zip_files(data):
         sys.stdout.flush()
         # print(f'\n  {zip_file_name} saved.')
 
+       # time.sleep(200) #for testing
+
     except Exception as e:
         print(' Warning: recoded file not found.. \n', e)
 
     data['file']['packing'] = False
 
+    return True
+
 
 def gracefully_end(data):
+
+    if data['conf']['exiting'] or data['file']['packing']:
+        print('please wait shortly..')
+        while True:
+            if not data['conf']['exiting'] and not data['file']['packing']:
+                return
+            time.sleep(1)
 
     data['conf']['exiting'] = True
 

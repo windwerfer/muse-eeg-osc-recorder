@@ -74,6 +74,8 @@ def start_stats(data):
                 rec = "rec "
             else:
                 rec = "wait"
+            if data['file']['packing']:
+                rec = "pack"
 
         if True:
             #m = round(data['stats']['process_pointer'].memory_percent(), 1)
