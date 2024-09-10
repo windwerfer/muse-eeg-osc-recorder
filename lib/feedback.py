@@ -81,7 +81,8 @@ def feedback_acc_start(data):
                         data['stats']['moved_continuous'] += 1
 
                 if play != '':
-                    play_sound(play, volume=vol, background=False)  # boreal_owl.mp3
+                    #play_sound(play, volume=vol, background=False)  # boreal_owl.mp3
+                    play_sound(play, volume=vol)  # boreal_owl.mp3
 
             else:
                 if current_time >= last_play_time + cooldown_nod:
