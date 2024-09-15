@@ -1,6 +1,5 @@
 # Collect events until released
-import os
-import sys
+
 import time
 
 from lib.input_get_key_pressed import get_key_pressed

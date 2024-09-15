@@ -1,12 +1,7 @@
 import time
 
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 
-import numpy as np
 
-from lib.feedback_filters import EMAFilter, LowPassFilter
-from lib.feedback_graph import MovingGraph
 
 import collections
 
@@ -15,9 +10,7 @@ from lib.play_sound_termux import play_sound
 
 def feedback_acc_start(data):
 
-    show_graph = False
-    if show_graph:
-        graph = MovingGraph(ylim=(-1, 1))
+
     # To store the history of movements
     movement_history = collections.deque(maxlen=data['conf']['nod_length'])  # Adjust the length as needed
 
