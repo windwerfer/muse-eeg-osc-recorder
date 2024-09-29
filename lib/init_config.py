@@ -18,13 +18,13 @@ def parse_arguments():
     parser.add_argument('--add_acc_file', type=bool, default=True, choices=[0, 1],
                         help='Default 1. Add separete file for accelaration (gryoscope) value.')
     parser.add_argument('--add_signal_quality_file', type=bool, default=True, choices=[0, 1],
-                        help='Default: 1. Add signal quality file. each row corresponds to the same row in the eeg file. they are separate to keep the fileformat compatable with eeglab.')
-    parser.add_argument('--add_signal_quality_for_each_electrode', type=bool, default=True, choices=[0, 1],
-                        help='Default 1. Add signal quality column for each electrode.')
+                        help='Default: 1. Add signal quality file. each row corresponds to the same row in the eeg file. 1 = good connection, 2 = mediocer connection, 4 = poor connection. they are separate to keep the fileformat compatable with eeglab.')
+    parser.add_argument('--add_ica_file', type=bool, default=True, choices=[0, 1],
+                        help='Default: 1. add a file with a single column. 1 = signal is without artifacts, 0 = artifacts (blink, muscle contract) within the previews second detected. sample rate 10hz')
+    parser.add_argument('--add_drlref_file', type=bool, default=True, choices=[0, 1],
+                        help='Default 1. Add file for Muse DRL and REF sensors. The units of both values are in microvolts. (used as reference electrodes to see incongruities between sensors)')
     parser.add_argument('--add_aux_columns', action='store_true',
                         help='Add auxiliary signal columns (aux0 and aux1) for recording eeg signals. Default: disabled because you need to connect a external electrode to the muse (most people dont use it).')
-    parser.add_argument('--add_time_column', action='store_true',
-                        help='Add a time column to the signal recording. Default: disabled because most programms expect a fixed amount of signals per second (eg 256 for the muse).')
     parser.add_argument('--use_tabseparator_for_csv', action='store_true',
                         help='Use tab as separator in CSV. Default is comma separator.')
     parser.add_argument('--add_header_row', action='store_true',
@@ -55,10 +55,11 @@ def init_conf(data):
         'add_heart_rate_file': args.add_heart_rate_file,
         'add_acc_file': args.add_acc_file,
         'add_signal_quality_file': args.add_signal_quality_file,
-        'add_signal_quality_for_each_electrode': args.add_signal_quality_for_each_electrode,
+        'add_ica_file': args.add_ica_file,
+        'add_drlref_file': args.add_drlref_file,
         'add_aux_columns': args.add_aux_columns,
         'use_tabseparator_for_csv': args.use_tabseparator_for_csv,
-        'add_time_column': args.add_time_column,
+        # 'add_time_column': args.add_time_column,
         'add_header_row': args.add_header_row,
         'port': args.port,
         'ip': args.ip,
@@ -67,25 +68,19 @@ def init_conf(data):
         'wait_until_starting_new_recording': args.wait_until_starting_new_recording,
     }
 
-    if data['conf']['add_time_column']:
-        data['columns']['eeg'].append('timestamp')
-        data['columns']['heart_rate'].append('timestamp')
-        data['columns']['acc'].append('timestamp')
-        data['columns']['signal_quality'].append('timestamp')
-
 
     # Define the CSV column names based on OSC addresses
     data['columns']['eeg'].extend(["tp9", "af7", "af8", "tp10"])
     #data['columns']['heart_rate'].extend(["heart_rate_0", "heart_rate_1", "heart_rate_2"])
     data['columns']['heart_rate'].extend(["heart_rate_1"]) # muse only uses heart rate sensor 1, sensor 0 & 2 (infrared and green) are not used, mind monitor does not send the heartrate at all
     data['columns']['acc'].extend(["x", "y", "z"])
-    data['columns']['signal_quality'].extend(["signal_quality_is_good"])
+    data['columns']['ica'].extend(["ica"])
+    data['columns']['signal_quality'].extend(['tp9', 'af7', 'af8', 'tp10'])
+    data['columns']['drlref'].extend(["drl","ref"])
 
     if data['conf']['add_aux_columns']:
         data['columns']['eeg'].extend(['aux0', 'aux1'])
 
-    if data['conf']['add_signal_quality_for_each_electrode']:
-        data['columns']['signal_quality'].extend(['signal_quality_tp9', 'signal_quality_af7', 'signal_quality_af8', 'signal_quality_tp10'])
 
 
 
@@ -93,7 +88,7 @@ def init_conf(data):
 
     # muse s and muse 2 have the same specs for eeg, ppg (heart_rate), and acc (gryoscope)
     #  (signal_quality has the same sampling rate as eeg)
-    data['conf']['sampling_rate'] = {'eeg': 256, 'signal_quality': 256, 'heart_rate': 64, 'acc': 52}
+    data['conf']['sampling_rate'] = {'eeg': 256, 'heart_rate': 64, 'acc': 52, 'signal_quality':256, 'ica': 10, 'drlref':256}
 
 
     # nod_threshold_magnitude: how sensitive the nodding recognition is.

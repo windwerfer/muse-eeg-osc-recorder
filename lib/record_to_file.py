@@ -11,7 +11,7 @@ from queue import Queue
 
 
 
-last_timestamp = {'eeg': 0, 'heart_rate': 0, 'acc': 0, 'signal_quality': 0}
+
 
 def open_file(name, data, csv_delimiter=','):
 
@@ -23,7 +23,7 @@ def open_file(name, data, csv_delimiter=','):
 
 
 def write_to_file(name, data):
-    global last_timestamp
+
 
     current_timestamp = 0
 
@@ -35,18 +35,12 @@ def write_to_file(name, data):
         while not data['buffer'][name].empty():
             b = data['buffer'][name].get()  # Get an item from the queue
 
-            if data['conf']['add_time_column']:
-                current_timestamp = last_timestamp[name] + 1 / sr * 1000
-                b['timestamp'] = round(current_timestamp, 4)
-
             data['file']['csv_writer'][name].writerow(b)
             data['file']['open'][name].flush()
 
             # Mark the task as done
             data['buffer'][name].task_done()
 
-            if data['conf']['add_time_column']:
-                last_timestamp[name] = current_timestamp
 
 
     except Exception as e:
@@ -67,7 +61,7 @@ def create_folder(f):
 
 # Function to write buffered data to a file every 10 seconds
 def process_buffers(data):
-    global last_timestamp
+
 
     time.sleep(1)
 
@@ -94,7 +88,9 @@ def process_buffers(data):
                     data['file']['name']['eeg'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_eeg.csv"
                     data['file']['name']['heart_rate'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_heart_rate.csv"
                     data['file']['name']['acc'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_accelerator.csv"
+                    data['file']['name']['ica'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_ica.csv"
                     data['file']['name']['signal_quality'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_signal_quality.csv"
+                    data['file']['name']['drlref'] = f"{data['conf']['file_name_prefix']}{current_timestamp_str}_drlref.csv"
                     create_folder(data['folder']['out'])
                     create_folder(f"{data['folder']['out']}/{data['folder']['tmp']}")
 
@@ -106,8 +102,14 @@ def process_buffers(data):
                     if data['conf']['add_acc_file']:
                         open_file('acc', data, csv_delimiter=csv_delimiter)
 
+                    if data['conf']['add_ica_file']:
+                        open_file('ica', data, csv_delimiter=csv_delimiter)
+
                     if data['conf']['add_signal_quality_file']:
                         open_file('signal_quality', data, csv_delimiter=csv_delimiter)
+
+                    if data['conf']['add_drlref_file']:
+                        open_file('drlref', data, csv_delimiter=csv_delimiter)
 
 
                     data['stats']['rec_start_time'] = time.time()
@@ -117,14 +119,12 @@ def process_buffers(data):
                     sys.stdout.write(f"\r {data['folder']['tmp']} created.                     \n")
                     sys.stdout.flush()
 
-                    last_timestamp = {'eeg': 0, 'heart_rate': 0, 'acc': 0, 'signal_quality': 0}
+                    # last_timestamp = {'eeg': 0, 'heart_rate': 0, 'acc': 0, 'ica': 0, 'signal_quality': 0, 'drlref': 0}
 
 
 
 
                 write_to_file('eeg', data)
-
-
 
                 if data['conf']['add_heart_rate_file']:
                     write_to_file('heart_rate', data)
@@ -132,8 +132,14 @@ def process_buffers(data):
                 if data['conf']['add_acc_file']:
                     write_to_file('acc', data)
 
+                if data['conf']['add_ica_file']:
+                    write_to_file('ica', data)
+
                 if data['conf']['add_signal_quality_file']:
                     write_to_file('signal_quality', data)
+
+                if data['conf']['add_drlref_file']:
+                    write_to_file('drlref', data)
 
                 last_received_time = time.time()
 

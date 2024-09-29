@@ -4,10 +4,10 @@ from queue import Queue
 class Shared_Data:
     def __init__(self):
         self._data = {
-            'buffer': {'eeg': Queue(), 'heart_rate': Queue(), 'acc': Queue(), 'signal_quality': Queue()},
-            'feedback': {'eeg': Queue(), 'heart_rate': Queue(), 'acc': Queue(), 'signal_quality': Queue()},
-            'signal': {'electrode': [4, 4, 4, 4], 'is_good': 0},
-            'columns': {'eeg': [], 'heart_rate': [], 'acc': [], 'signal_quality': []},
+            'buffer': {'eeg': Queue(), 'heart_rate': Queue(), 'acc': Queue(), 'ica': Queue(), 'signal_quality': Queue(), 'drlref': Queue()},
+            'feedback': {'eeg': Queue(), 'heart_rate': Queue(), 'acc': Queue(), 'ica': Queue(), 'signal_quality': Queue(), 'drlref': Queue()},
+            'signal': {'electrode': [4, 4, 4, 4], 'ica_good': 0, 'ok': 0, 'blink':0, 'jaw_clench':0, 'touching_forehead':0 },
+            'columns': {'eeg': [], 'heart_rate': [], 'acc': [], 'ica': [], 'signal_quality': [], 'drlref': []},
             'conf': {},
             'stats': {'refresh_interval': 1, 'cpu': 0, 'cpu_one_core': 0.0, 'nr_cpu_cores': 1, 'battery': None,
                 'moved': '', 'moved_sum': 0, 'moved_continuous': 0, 'counter': '-',  'recording': 0,
