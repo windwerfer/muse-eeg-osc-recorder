@@ -4,7 +4,7 @@ import socketserver
 import logging
 import signal
 
-def start_web_server(server_folder='.cache', port=9000):
+def start_web_server(server_folder='cache', port=9000):
     """
     Starts a simple HTTP server in a separate thread to serve files from the specified folder,
     with server logs redirected to 'server_errors.txt' and other prints to stdout.
@@ -49,7 +49,7 @@ def kill_server_process(port):
 
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
-            if 'python' in proc.info['name'] or 'python.exe' in proc.info['name']:
+            if 'python' in proc.info['name'] or 'python.exe' in proc.info['name'] or 'python3' in proc.info['name']:
                 for conns in proc.connections():
                     if conns.laddr.port == port:
                         print(f"Killing process {proc.info['pid']} serving on port {port}")

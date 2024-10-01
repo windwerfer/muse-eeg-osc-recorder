@@ -19,4 +19,4 @@ sample_live_streams
 kivy*
 test
 server_errors.txt
-.cache/
+cache/
