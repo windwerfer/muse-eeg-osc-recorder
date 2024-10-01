@@ -18,3 +18,5 @@ sample_raw_to_graph
 sample_live_streams
 kivy*
 test
+server_errors.txt
+.cache/

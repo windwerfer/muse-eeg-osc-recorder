@@ -9,8 +9,7 @@ import zipfile
 
 from queue import Queue
 
-
-
+from lib.util import create_folder
 
 
 def open_file(name, data, csv_delimiter=','):
@@ -47,15 +46,7 @@ def write_to_file(name, data):
         if data['conf']['exiting'] != True:
             print(f'    !! 10s of *{name}* data lost !!  ')
 
-def create_folder(f):
-    try:
-        # Check if the directory exists, if not, create it
-        if not os.path.exists(f):
-            os.makedirs(f)
-        return True
-    except OSError as error:
-        print(f"Error: Creating directory {f}. {error}")
-        return False
+
 
 
 

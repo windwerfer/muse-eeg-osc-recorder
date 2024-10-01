@@ -12,16 +12,19 @@ from lib.osc_server import osc_start
 from lib.record_to_file import process_buffers, gracefully_end
 from lib.shared_data import Shared_Data
 from lib.statistics import start_stats, is_run_in_pycharm
-
-
-
-
+from lib.web_server import start_web_server
+from lib.util import create_folder
 
 
 def main():
 
     data = Shared_Data()
     init_conf(data)
+
+    server_folder = '.cache'
+    create_folder(server_folder)
+    web_server_thread = threading.Thread(target=start_web_server, args=(server_folder,), daemon=True)
+    web_server_thread.start()
 
     stats_thread = threading.Thread(target=start_stats, args=(data,), daemon=True)
     stats_thread.start()
