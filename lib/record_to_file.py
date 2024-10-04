@@ -134,10 +134,10 @@ def process_buffers(data):
 
                 last_received_time = time.time()
 
-            # zip file after 'wait_until_starting_new_recording' seconds of inactivity and remove plain csv
+            # zip file after 'wait_before_starting_new_rec' seconds of inactivity and remove plain csv
             # only do so if there is a data['folder']['tmp'] created
             else:
-                if data['folder']['tmp'] != '' and last_received_time + data['conf']['wait_until_starting_new_recording'] < now:
+                if data['folder']['tmp'] != '' and last_received_time + data['conf']['wait_before_starting_new_rec'] < now:
                     try:
 
                         close_and_zip_files(data)

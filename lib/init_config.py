@@ -37,7 +37,7 @@ def parse_arguments():
                         help='Default "eeg_". File name prefix for output files.')
     parser.add_argument('--feedback_acc', action='store_true',
                         help='Use the Accelerometer data to find sleepiness. Default: disabled')
-    parser.add_argument('--wait_until_starting_new_recording', type=int, default=15,
+    parser.add_argument('--wait_before_starting_new_rec', type=int, default=15,
                         help='Default 15. Time in seconds to wait when the osc stream stopped until closing the file and starting a new one.')
 
     return parser.parse_args()
@@ -65,7 +65,7 @@ def init_conf(data):
         'ip': args.ip,
         'file_name_prefix': args.file_name_prefix,
         'feedback_acc': args.feedback_acc,
-        'wait_until_starting_new_recording': args.wait_until_starting_new_recording,
+        'wait_before_starting_new_rec': args.wait_before_starting_new_rec,
     }
 
 
@@ -100,6 +100,6 @@ def init_conf(data):
     data['conf']['nod_length'] = 20
 
     # the time the script waits while no osc data arrives, before assuming its a new recording session and starts a new file
-    # data['conf']['wait_until_starting_new_recording'] = 15        # now set through arg parse
+    # data['conf']['wait_before_starting_new_rec'] = 15        # now set through arg parse
 
 
