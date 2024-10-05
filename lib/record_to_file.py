@@ -71,6 +71,8 @@ def process_buffers(data):
         # print(status_isGood)
         # print(status_electrodeFit)
         if not data['file']['packing']:
+
+
             if not data['buffer']['eeg'].empty():
 
                 if data['folder']['tmp'] == '':         # create new tmp folder and eeg files
@@ -139,14 +141,18 @@ def process_buffers(data):
             else:
                 if data['folder']['tmp'] != '' and last_received_time + data['conf']['wait_before_starting_new_rec'] < now:
                     try:
-
                         close_and_zip_files(data)
-
-
                     except Exception as e:
                         print(' Warning: recoded file not found.. ')
 
-
+            # if streaming from muse_app
+            if data['stream']['from_muse_app'] == 1:
+                # and no /muse_metrics is received in the last second (= no feedback going on) -> close file
+                if data['folder']['tmp'] != '' and data['stream']['last_data_received'] + 1 < now:
+                    try:
+                        close_and_zip_files(data)
+                    except Exception as e:
+                        print(' Warning: recoded file not found.. ')
 
         #print_stats()
         time.sleep(10)

@@ -7,6 +7,7 @@ class Shared_Data:
             'buffer': {'eeg': Queue(), 'heart_rate': Queue(), 'acc': Queue(), 'ica': Queue(), 'signal_quality': Queue(), 'drlref': Queue()},
             'feedback': {'eeg': Queue(), 'heart_rate': Queue(), 'acc': Queue(), 'ica': Queue(), 'signal_quality': Queue(), 'drlref': Queue()},
             'signal': {'electrode': [4, 4, 4, 4], 'ica_good': 0, 'ok': 0, 'blink':0, 'jaw_clench':0, 'touching_forehead':0 },
+            'stream': {'from_muse_app': 0, 'from_mindmonitor_app': 0, 'last_data_received': 0, 'pause': 0, 'stop': 1, 'calibrate': 0, 'rec':0 },
             'columns': {'eeg': [], 'heart_rate': [], 'acc': [], 'ica': [], 'signal_quality': [], 'drlref': []},
             'conf': {},
             'stats': {'refresh_interval': 1, 'cpu': 0, 'cpu_one_core': 0.0, 'nr_cpu_cores': 1, 'battery': None,

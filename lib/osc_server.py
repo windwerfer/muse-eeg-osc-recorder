@@ -1,4 +1,5 @@
 import os
+import time
 from functools import partial
 
 from pythonosc import dispatcher
@@ -10,7 +11,31 @@ import math
 
 
 # Define the function to handle incoming OSC messages
-def handle_eeg_message( buffer_eeg, signal, conf, address, *args):
+def handle_eeg_message( buffer_eeg, signal, conf, stream, address, *args):
+
+    # define if received from muse_app or mindmonitor_app
+    if address == '/eeg' :
+        stream['from_muse_app'] = 1
+        stream['from_mindmonitor_app'] = 0
+        # if conf['no_auto_split_if_muse_app'] == 1, contiuous recording enabled
+        if conf['no_auto_split_if_muse_app']:
+            stream['rec'] = 1
+    else:
+        stream['from_muse_app'] = 0
+        stream['from_mindmonitor_app'] = 1
+
+
+    if stream['from_muse_app'] == 1:
+        # only record if feedback is going on
+        if stream['rec'] == 0 and stream['calibrate'] == 0:
+            return
+        # check if muse_app is still sending feedback, or if it stopped
+        if stream['last_data_received'] + 1 < time.time():
+            stream['rec'] = 0
+            stream['calibrate'] = 0
+            return
+
+
 
     eeg_data = {}
 
@@ -51,7 +76,12 @@ def handle_eeg_message( buffer_eeg, signal, conf, address, *args):
         print(f"Received EEG OSC message - Address: {address}, Args: {args}")
 
 
-def handle_ppg_message( buffer_ppg, conf, address, *args):
+def handle_ppg_message( buffer_ppg, conf, stream, address, *args):
+
+    if stream['from_muse_app'] == 1:
+        # only record if feedback is going on
+        if stream['rec'] == 0 and stream['calibrate'] == 0:
+            return
 
     ppg_data = {}
 
@@ -71,7 +101,12 @@ def handle_ppg_message( buffer_ppg, conf, address, *args):
     buffer_ppg.put(ppg_data)
 
 
-def handle_acc_message( buffer_acc, feedback_acc, conf, address, *args):
+def handle_acc_message( buffer_acc, feedback_acc, conf, stream, address, *args):
+
+    if stream['from_muse_app'] == 1:
+        # only record if feedback is going on
+        if stream['rec'] == 0 and stream['calibrate'] == 0:
+            return
 
     acc_data = {}
 
@@ -86,13 +121,29 @@ def handle_acc_message( buffer_acc, feedback_acc, conf, address, *args):
         feedback_acc.put(acc_data)
 
 
-def handle_ica_message( buffer_ica, signal, address, *args):
+def handle_ica_message( buffer_ica, signal, stream, address, *args):
+
+    if stream['from_muse_app'] == 1:
+        # only record if feedback is going on
+        if stream['rec'] == 0 and stream['calibrate'] == 0:
+            return
+
     # thread save variable assignment (locked)
     signal['ica_good'] = args[0]
     buffer_ica.put({'ica':args[0]})
 
 
-def handle_electrodeFit_message(buffer_signal_quality, signal, address, *args):
+def handle_electrodeFit_message(buffer_signal_quality, signal, stream, address, *args):
+
+    if stream['from_muse_app'] == 1:
+        # only record if feedback is going on
+        if stream['rec'] == 0 and stream['calibrate'] == 0:
+            return
+
+    if stream['from_muse_app'] == 1:
+        # only record if feedback is going on
+        if stream['rec'] == 0 and stream['calibrate'] == 0:
+            return
 
     el = []
     co = ['tp9', 'af7', 'af8', 'tp10']
@@ -106,7 +157,12 @@ def handle_electrodeFit_message(buffer_signal_quality, signal, address, *args):
 
     buffer_signal_quality.put(sq)
 
-def handle_drlref_message(buffer_drlref, address, *args):
+def handle_drlref_message(buffer_drlref, stream, address, *args):
+
+    if stream['from_muse_app'] == 1:
+        # only record if feedback is going on
+        if stream['rec'] == 0 and stream['calibrate'] == 0:
+            return
 
     el = []
     co = ['drl', 'ref']
@@ -116,6 +172,37 @@ def handle_drlref_message(buffer_drlref, address, *args):
         re[co[i]] = arg
     # thread save variable assignment (locked)
     buffer_drlref.put(re)
+
+
+def handle_muse_app_message(stream, address, *args):
+
+    # last received time will be used to check if the /muse_metrics stream is still sending packages
+    #  if longer than 1s not received -> muse is stoped (check in /eeg stream)
+    stream['last_data_received'] = time.time()
+
+    # stop: no /muse_metrics
+    #
+    # calibrating:         args[6] == 0       args[23] == 2       args[33] == 0
+    # feedgack / rec:      args[6] == 1       args[23] == 2       args[33] == 1
+    # pause:               args[6] == -1      args[23] == 3       args[33] == 2
+    # setting: continue meditation (after meditationtimer has ended): args[30] == 1, do not continue:  args[30] == 0
+    if args[33] == 0:
+        stream['pause'] = 0
+        stream['calibrate'] = 1
+        stream['rec'] = 0
+    elif args[33] == 1:
+        stream['pause'] = 0
+        stream['calibrate'] = 0
+        stream['rec'] = 1
+    else:
+        stream['pause'] = 1
+        stream['calibrate'] = 0
+        stream['rec'] = 0
+
+
+
+
+
 
 
 # this is not completely correct, since it will put the ica value whenever blink is streamed
@@ -146,26 +233,28 @@ def osc_start(data):
 
     dispatcher = dispatcher.Dispatcher()
     # muse app osc streams
-    dispatcher.map("/eeg", partial(handle_eeg_message,  data['buffer']['eeg'], data['signal'], data['conf']))  # muse app osc      buffer_eeg, buffer_signal_quality, data_signal, conf
+    dispatcher.map("/eeg", partial(handle_eeg_message,  data['buffer']['eeg'], data['signal'], data['conf'], data['stream']))  # muse app osc      buffer_eeg, buffer_signal_quality, data_signal, conf
     if data['conf']['add_heart_rate_file']:
-        dispatcher.map("/ppg", partial(handle_ppg_message, data['buffer']['heart_rate'], data['conf']))  # muse app osc
+        dispatcher.map("/ppg", partial(handle_ppg_message, data['buffer']['heart_rate'], data['conf'], data['stream']))  # muse app osc
     if data['conf']['add_acc_file']:
-        dispatcher.map("/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf']))  # muse app osc               buffer_acc, feedback_acc, conf):
+        dispatcher.map("/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf'], data['stream']))  # muse app osc               buffer_acc, feedback_acc, conf):
 
     if data['conf']['add_ica_file']:
-        dispatcher.map("/is_good", partial(handle_ica_message, data['buffer']['ica'], data['signal'], ))  # muse app
+        dispatcher.map("/is_good", partial(handle_ica_message, data['buffer']['ica'], data['signal'], data['stream'], ))  # muse app
     if data['conf']['add_signal_quality_file']:
-        dispatcher.map("/hsi", partial(handle_electrodeFit_message, data['buffer']['signal_quality'], data['signal'], ))  # muse app
+        dispatcher.map("/hsi", partial(handle_electrodeFit_message, data['buffer']['signal_quality'], data['signal'], data['stream'], ))  # muse app
     if data['conf']['add_drlref_file']:
-        dispatcher.map("/drlref", partial(handle_drlref_message, data['buffer']['drlref'], ))  # muse app
+        dispatcher.map("/drlref", partial(handle_drlref_message, data['buffer']['drlref'], data['stream'], ))  # muse app
+    if not data['conf']['no_auto_split_if_muse_app']:
+        dispatcher.map("/muse_metrics", partial(handle_muse_app_message, data['stream'], ))  # muse app
 
 
     # mind monitor osc streams
-    dispatcher.map("/muse/eeg", partial(handle_eeg_message, data['buffer']['eeg'], data['buffer']['signal_quality'], data['signal'], data['conf']))  # mind monitor osc
+    dispatcher.map("/muse/eeg", partial(handle_eeg_message, data['buffer']['eeg'], data['buffer']['signal_quality'], data['signal'], data['conf'], data['stream']))  # mind monitor osc
     if data['conf']['add_acc_file']:
-        dispatcher.map("/muse/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf']))  # muse app osc
+        dispatcher.map("/muse/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf'], data['stream']))  # muse app osc
     if data['conf']['add_signal_quality_file']:
-        dispatcher.map("/muse/elements/horseshoe", partial(handle_electrodeFit_message, data['signal'], ))  # mind monitor osc
+        dispatcher.map("/muse/elements/horseshoe", partial(handle_electrodeFit_message, data['signal'], data['stream'], ))  # mind monitor osc
     # a bit tricky, because mindmonitor splits the ica into 3 parts..
     # if data['conf']['add_ica_file']:
         dispatcher.map("/muse/elements/blink", partial(handle_icaMM_message, 'blink', data['signal'], ))  # mind monitor osc
