@@ -2,6 +2,7 @@
 
 import threading
 
+import os
 import time
 
 
@@ -21,7 +22,7 @@ def main():
     data = Shared_Data()
     init_conf(data)
 
-    server_folder = 'cache'
+    server_folder = data['conf']['graphs_folder']
     create_folder(server_folder)
     web_server_thread = threading.Thread(target=start_web_server, args=(server_folder,), daemon=True)
     web_server_thread.start()

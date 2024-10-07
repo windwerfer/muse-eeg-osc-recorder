@@ -59,6 +59,7 @@ def process_buffers(data):
     last_received_time = None
 
 
+
     if data['conf']['use_tabseparator_for_csv']:
         csv_delimiter = '\t'
     else:
@@ -138,21 +139,22 @@ def process_buffers(data):
 
             # zip file after 'wait_before_starting_new_rec' seconds of inactivity and remove plain csv
             # only do so if there is a data['folder']['tmp'] created
-            else:
+            else:                                           # if streaming from mindmonitor
                 if data['folder']['tmp'] != '' and last_received_time + data['conf']['wait_before_starting_new_rec'] < now:
                     try:
                         close_and_zip_files(data)
                     except Exception as e:
                         print(' Warning: recoded file not found.. ')
 
-            # if streaming from muse_app
-            if data['stream']['from_muse_app'] == 1:
+
+            if data['stream']['from_muse_app'] == 1:        # if streaming from muse_app
                 # and no /muse_metrics is received in the last second (= no feedback going on) -> close file
                 if data['folder']['tmp'] != '' and data['stream']['last_data_received'] + 1 < now:
                     try:
                         close_and_zip_files(data)
                     except Exception as e:
                         print(' Warning: recoded file not found.. ')
+
 
         #print_stats()
         time.sleep(10)

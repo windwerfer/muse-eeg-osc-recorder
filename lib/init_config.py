@@ -39,8 +39,8 @@ def parse_arguments():
                         help='Use the Accelerometer data to find sleepiness. Default: disabled')
     parser.add_argument('--wait_before_starting_new_rec', type=int, default=15,
                         help='Default 15. Time in seconds to wait when the osc stream stopped until closing the file and starting a new one.')
-    parser.add_argument('--no_auto_split_if_muse_app', action='store_true',
-                        help='If muse app is steaming: by default there will be a new file generated whenever the meditation stops. also only when the feedback or calibration is going on, will there be a recoring. setting this switch will enable contiuous recoring, even if there is no feedback.')
+    parser.add_argument('--graphs_folder', type=str, default='cache',
+                        help='folder where the generated images are stored and the http server is started in. defautl: cache')
 
     return parser.parse_args()
 
@@ -68,7 +68,7 @@ def init_conf(data):
         'file_name_prefix': args.file_name_prefix,
         'feedback_acc': args.feedback_acc,
         'wait_before_starting_new_rec': args.wait_before_starting_new_rec,
-        'no_auto_split_if_muse_app': args.no_auto_split_if_muse_app,
+        'graphs_folder': args.graphs_folder,
     }
 
 

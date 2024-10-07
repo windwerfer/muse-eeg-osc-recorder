@@ -18,8 +18,7 @@ def handle_eeg_message( buffer_eeg, signal, conf, stream, address, *args):
         stream['from_muse_app'] = 1
         stream['from_mindmonitor_app'] = 0
         # if conf['no_auto_split_if_muse_app'] == 1, contiuous recording enabled
-        if conf['no_auto_split_if_muse_app']:
-            stream['rec'] = 1
+
     else:
         stream['from_muse_app'] = 0
         stream['from_mindmonitor_app'] = 1
@@ -173,14 +172,14 @@ def handle_drlref_message(buffer_drlref, stream, address, *args):
     # thread save variable assignment (locked)
     buffer_drlref.put(re)
 
-
+#  receives status messages from muse_app, including start, stop & pause feedback (tools/osc_scanner/osc_scanner_muse_metrics.py for testing)
 def handle_muse_app_message(stream, address, *args):
 
     # last received time will be used to check if the /muse_metrics stream is still sending packages
     #  if longer than 1s not received -> muse is stoped (check in /eeg stream)
     stream['last_data_received'] = time.time()
 
-    # stop: no /muse_metrics
+    # stop: no /muse_metrics osc steam
     #
     # calibrating:         args[6] == 0       args[23] == 2       args[33] == 0
     # feedgack / rec:      args[6] == 1       args[23] == 2       args[33] == 1
@@ -232,24 +231,24 @@ def osc_start(data):
     global dispatcher
 
     dispatcher = dispatcher.Dispatcher()
-    # muse app osc streams
-    dispatcher.map("/eeg", partial(handle_eeg_message,  data['buffer']['eeg'], data['signal'], data['conf'], data['stream']))  # muse app osc      buffer_eeg, buffer_signal_quality, data_signal, conf
+# muse app osc streams
+    dispatcher.map("/eeg", partial(handle_eeg_message,  data['buffer']['eeg'], data['signal'], data['conf'], data['stream']))
+    dispatcher.map("/muse_metrics", partial(handle_muse_app_message, data['stream'], ))   # sends status messages from muse app, including start, stop & pause feedback (tools/osc_scanner/osc_scanner_muse_metrics.py for testing)
     if data['conf']['add_heart_rate_file']:
-        dispatcher.map("/ppg", partial(handle_ppg_message, data['buffer']['heart_rate'], data['conf'], data['stream']))  # muse app osc
+        dispatcher.map("/ppg", partial(handle_ppg_message, data['buffer']['heart_rate'], data['conf'], data['stream']))
     if data['conf']['add_acc_file']:
-        dispatcher.map("/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf'], data['stream']))  # muse app osc               buffer_acc, feedback_acc, conf):
-
+        dispatcher.map("/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf'], data['stream']))
     if data['conf']['add_ica_file']:
-        dispatcher.map("/is_good", partial(handle_ica_message, data['buffer']['ica'], data['signal'], data['stream'], ))  # muse app
+        dispatcher.map("/is_good", partial(handle_ica_message, data['buffer']['ica'], data['signal'], data['stream'], ))
     if data['conf']['add_signal_quality_file']:
-        dispatcher.map("/hsi", partial(handle_electrodeFit_message, data['buffer']['signal_quality'], data['signal'], data['stream'], ))  # muse app
+        dispatcher.map("/hsi", partial(handle_electrodeFit_message, data['buffer']['signal_quality'], data['signal'], data['stream'], ))
     if data['conf']['add_drlref_file']:
-        dispatcher.map("/drlref", partial(handle_drlref_message, data['buffer']['drlref'], data['stream'], ))  # muse app
-    if not data['conf']['no_auto_split_if_muse_app']:
-        dispatcher.map("/muse_metrics", partial(handle_muse_app_message, data['stream'], ))  # muse app
+        dispatcher.map("/drlref", partial(handle_drlref_message, data['buffer']['drlref'], data['stream'], ))
 
 
-    # mind monitor osc streams
+
+
+# mind monitor osc streams
     dispatcher.map("/muse/eeg", partial(handle_eeg_message, data['buffer']['eeg'], data['buffer']['signal_quality'], data['signal'], data['conf'], data['stream']))  # mind monitor osc
     if data['conf']['add_acc_file']:
         dispatcher.map("/muse/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf'], data['stream']))  # muse app osc
