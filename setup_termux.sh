@@ -11,7 +11,32 @@ else
     termux-setup-storage
 fi
 
-apt update
-apt install python3
+pkg update
+yes | pkg upgrade  # automatically send yes to install pa
 
-#TODO: install all the rest
+# better to run it twice..
+pkg update
+yes | pkg upgrade  # automatically send yes to install pa
+
+yes | pkg install python3
+yes | pkg install build-essential python-numpy man matplotlib python-pillow python-tkinter python-pandas
+
+# additional repo needs to be added for scipy
+yes | pkg install tur-repo
+pkg update
+
+# advanced math functions for generating graphs
+yes | pkg install python-scipy
+
+# library for the osc server and the monitoring of the cpu
+pip install wheel
+pip install python-osc psutil
+
+# audio support for nod reminder
+yes | pkg install pulseaudio mpv
+
+mkdir /sdcard/muse_rec_osc
+mkdir /sdcard/muse_rec_osc/out_eeg
+echo 'alias .r="cd /sdcard/muse_rec_osc" ' >> ~/.bashrc
+echo 'alias r="cd /sdcard/muse_rec_osc ; python3 write_osc_to_files.py" ' >> ~/.bashrc
+source .bashrc
