@@ -75,16 +75,26 @@ def handle_eeg_message( buffer_eeg, buffer_signal, buffer_ica, buffer_drlref, si
     # the signal quality data does not update with the same frequency as eeg data
     # this will maybe double the filesize of the signal data, but i find it better to have the signal quality
     # exactly match the eeg data
-    if conf['add_signal_quality_file']:
-        buffer_signal.put(signal['electrode'])
+    if not conf['no_signal_quality_file']:
+        sig = {
+                'tp9':signal['electrode'][0],
+                'af7':signal['electrode'][1],
+                'af8':signal['electrode'][2],
+                'tp10':signal['electrode'][3]
+                }
+        buffer_signal.put(sig)
 
     # add ica file (same as signal quality)
-    if conf['add_ica_file']:
-        buffer_ica.put(signal['ica_good'])
+    if not conf['no_ica_file']:
+        buffer_ica.put({'ica':signal['ica_good']})
 
     # add drlref file (same as signal quality)
-    if conf['add_drlref_file']:
-        buffer_drlref.put(signal['drlref'])
+    if not conf['no_drlref_file']:
+        drlref = {
+                'drl':signal['drlref'][0],
+                'ref':signal['drlref'][1]
+                }
+        buffer_drlref.put(drlref)
 
     if False:
         print(f"Received EEG OSC message - Address: {address}, Args: {args}")
@@ -156,11 +166,11 @@ def handle_electrodeFit_message(buffer_signal_quality, signal, stream, address, 
 
 
     el = []
-    co = ['tp9', 'af7', 'af8', 'tp10']
-    sq = {}
+    # co = ['tp9', 'af7', 'af8', 'tp10']
+    # sq = {}
     for i, arg in enumerate(args):
         el.append(int(arg))
-        sq[co[i]] = int(arg)
+        # sq[co[i]] = int(arg)
 
     # thread save variable assignment (locked)
     signal['electrode'] = el
@@ -175,11 +185,11 @@ def handle_drlref_message(buffer_drlref, signal, stream, address, *args):
     #         return
 
     el = []
-    co = ['drl', 'ref']
-    re = {}
+    # co = ['drl', 'ref']
+    # re = {}
     for i, arg in enumerate(args):
         el.append(arg)
-        re[co[i]] = arg
+        # re[co[i]] = arg
 
     signal['drlref'] = el
 
@@ -251,15 +261,15 @@ def osc_start(data):
                                    data['stream']))
     # sends status messages from muse app, including start, stop & pause feedback (tools/osc_scanner/osc_scanner_muse_metrics.py for testing)
     dispatcher.map("/muse_metrics", partial(handle_muse_app_message, data['stream'], ))
-    if data['conf']['add_heart_rate_file']:
+    if not data['conf']['no_heart_rate_file']:
         dispatcher.map("/ppg", partial(handle_ppg_message, data['buffer']['heart_rate'], data['conf'], data['stream']))
-    if data['conf']['add_acc_file']:
+    if not data['conf']['no_acc_file']:
         dispatcher.map("/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf'], data['stream']))
-    if data['conf']['add_ica_file']:
+    if not data['conf']['no_ica_file']:
         dispatcher.map("/is_good", partial(handle_ica_message, data['buffer']['ica'], data['signal'], data['stream'], ))
-    if data['conf']['add_signal_quality_file']:
+    if not data['conf']['no_signal_quality_file']:
         dispatcher.map("/hsi", partial(handle_electrodeFit_message, data['buffer']['signal_quality'], data['signal'], data['stream'], ))
-    if data['conf']['add_drlref_file']:
+    if not data['conf']['no_drlref_file']:
         dispatcher.map("/drlref", partial(handle_drlref_message, data['buffer']['drlref'], data['signal'], data['stream'], ))
 
 
@@ -269,12 +279,12 @@ def osc_start(data):
     dispatcher.map("/muse/eeg", partial(handle_eeg_message, data['buffer']['eeg'], data['buffer']['signal_quality'],
                                    data['buffer']['ica'], data['buffer']['drlref'], data['signal'], data['conf'],
                                    data['stream']))  # mind monitor osc
-    if data['conf']['add_acc_file']:
+    if not data['conf']['no_acc_file']:
         dispatcher.map("/muse/acc", partial(handle_acc_message, data['buffer']['acc'], data['feedback']['acc'], data['conf'], data['stream']))  # muse app osc
-    if data['conf']['add_signal_quality_file']:
+    if not data['conf']['no_signal_quality_file']:
         dispatcher.map("/muse/elements/horseshoe", partial(handle_electrodeFit_message, data['signal'], data['stream'], ))  # mind monitor osc
     # a bit tricky, because mindmonitor splits the ica into 3 parts..
-    # if data['conf']['add_ica_file']:
+    # if not data['conf']['no_ica_file']:
         dispatcher.map("/muse/elements/blink", partial(handle_icaMM_message, 'blink', data['signal'], ))  # mind monitor osc
         dispatcher.map("/muse/elements/jaw_clench", partial(handle_icaMM_message, 'jaw_clench', data['signal'], ))  # mind monitor osc
         dispatcher.map("/muse/elements/touching_forehead", partial(handle_icaMM_message, 'touching_forehead', data['signal'], ))  # mind monitor osc

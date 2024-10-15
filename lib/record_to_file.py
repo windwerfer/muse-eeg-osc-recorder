@@ -90,19 +90,19 @@ def process_buffers(data):
 
                     open_file('eeg', data, csv_delimiter=csv_delimiter)
 
-                    if data['conf']['add_heart_rate_file']:
+                    if not data['conf']['no_heart_rate_file']:
                         open_file('heart_rate', data, csv_delimiter=csv_delimiter)
 
-                    if data['conf']['add_acc_file']:
+                    if not data['conf']['no_acc_file']:
                         open_file('acc', data, csv_delimiter=csv_delimiter)
 
-                    if data['conf']['add_ica_file']:
+                    if not data['conf']['no_ica_file']:
                         open_file('ica', data, csv_delimiter=csv_delimiter)
 
-                    if data['conf']['add_signal_quality_file']:
+                    if not data['conf']['no_signal_quality_file']:
                         open_file('signal_quality', data, csv_delimiter=csv_delimiter)
 
-                    if data['conf']['add_drlref_file']:
+                    if not data['conf']['no_drlref_file']:
                         open_file('drlref', data, csv_delimiter=csv_delimiter)
 
 
@@ -120,19 +120,19 @@ def process_buffers(data):
 
                 write_to_file('eeg', data)
 
-                if data['conf']['add_heart_rate_file']:
+                if not data['conf']['no_heart_rate_file']:
                     write_to_file('heart_rate', data)
 
-                if data['conf']['add_acc_file']:
+                if not data['conf']['no_acc_file']:
                     write_to_file('acc', data)
 
-                if data['conf']['add_ica_file']:
+                if not data['conf']['no_ica_file']:
                     write_to_file('ica', data)
 
-                if data['conf']['add_signal_quality_file']:
+                if not data['conf']['no_signal_quality_file']:
                     write_to_file('signal_quality', data)
 
-                if data['conf']['add_drlref_file']:
+                if not data['conf']['no_drlref_file']:
                     write_to_file('drlref', data)
 
                 last_received_time = time.time()
